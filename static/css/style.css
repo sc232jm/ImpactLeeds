@@ -1,0 +1,10 @@
+/* Custom styles for Leeds Petitions */
+
+body {
+    padding-top: 56px;
+}
+
+.jumbotron {
+    background-color: #f8f9fa;
+    border-radius: 0.3rem;
+}
