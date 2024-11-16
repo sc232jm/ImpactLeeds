@@ -1,0 +1,83 @@
+/* Custom styles for Leeds Petitions */
+
+body {
+    padding-top: 56px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container {
+    flex: 1;
+}
+
+.carousel-item {
+    min-height: 400px;
+    padding: 20px;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5%;
+}
+
+.carousel-control-prev {
+    left: -20px;
+}
+
+.carousel-control-next {
+    right: -20px;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    padding: 10px;
+}
+
+.jumbotron {
+    background-color: #f8f9fa;
+    border-radius: 0.3rem;
+}
+
+.btn-group .btn {
+    margin-right: 10px;
+}
+
+.card {
+    cursor: pointer;
+}
+
+.card:hover {
+    background-color: #f8f9fa;
+}
+
+.badge {
+    font-size: 0.9rem;
+}
+
+footer {
+    flex-shrink: 0;
+    padding: 10px 0;
+}
+.selected {
+    border: 2px solid #007bff;
+    background-color: transparent;
+    color: #007bff;
+}
+
+.btn-outline-primary:hover {
+    background-color: transparent;
+    border-color: #007bff;
+    color: #007bff;
+}

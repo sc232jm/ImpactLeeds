@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h2>{{ petition.title }}</h2>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <img src="{{ petition.image_url }}" class="img-fluid mb-3" alt="{{ petition.title }}" style="max-width: 100%; height: auto;">
+            <div class="d-flex align-items-center mb-3">
+                <i class="fas fa-user"></i>
+                <span class="ml-2">Started By {{ petition.author }}</span>
+            </div>
+            <h4>Why this matters?</h4>
+            <p>{{ petition.description }}</p>
+
+            <div class="mt-4">
+                <h4>Signatures</h4>
+                <div class="signatures">
+                    {% for signature in petition.signatures %}
+                    <div class="comment mb-2">
+                        <strong>{{ signature.author }}:</strong> {{ signature.text }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="progress mb-3" style="height: 30px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ (petition.signaturesNum / petition.target_signatures) * 100 }}%;" aria-valuenow="{{ petition.signaturesNum }}" aria-valuemin="0" aria-valuemax="{{ petition.target_signatures }}">
+                </div>
+            </div>
+            <p>{{ petition.signaturesNum }} / {{ petition.target_signatures }} signatures</p>
+            <form action="{{ url_for('sign_petition', petition_id=petition.id) }}" method="post" class="mb-3">
+                <div class="form-group">
+                    <label for="reason">Sign this Petition</label>
+                    <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="Optional: Why are you signing this petition?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Sign this Petition</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
