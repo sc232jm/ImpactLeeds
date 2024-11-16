@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request
-from app import app
+from app import app, db, models
 from markupsafe import Markup
 
 petitions = [
