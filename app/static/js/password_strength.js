@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
         signUpButton.disabled = (strength.label === 'Weak');
     });
 
+    //https://stackoverflow.com/questions/50547523/how-can-i-use-javascript-to-test-for-password-strength-in-a-way-that-returns-the
     function getPasswordStrength(password) {
         let score = 0;
         let strength = 'Weak';

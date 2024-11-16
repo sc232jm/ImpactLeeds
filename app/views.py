@@ -1,6 +1,9 @@
-from flask import Flask, render_template, redirect, url_for, request
-from app import app, db, models
+from flask import Flask, render_template, redirect, url_for, request, flash
+from app import app, db, login_manager
 from markupsafe import Markup
+from flask_login import login_user, logout_user, login_required, current_user
+from app.models import User, Petition, Signature
+from app.forms import SignupForm, LoginForm
 
 petitions = [
     {
@@ -36,6 +39,9 @@ petitions = [
     }
 ]
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 @app.route('/')
 def home():
@@ -56,48 +62,86 @@ def petition_detail(petition_id):
 
 
 @app.route('/petition/<int:petition_id>/sign', methods=['POST'])
+@login_required
 def sign_petition(petition_id):
     reason_text = request.form['reason']
-    petition = next((p for p in petitions if p['id'] == petition_id), None)
+    petition = Petition.query.get(petition_id)
     if petition:
-        petition['signaturesNum'] += 1
-        petition['signers'].append({'reason': reason_text})
+        new_signature = Signature(
+            author_id=current_user.id,
+            petition_id=petition_id,
+            reason=reason_text
+        )
+        db.session.add(new_signature)
+        db.session.commit()
+        db.session.commit()
     return redirect(url_for('petition_detail', petition_id=petition_id))
 
 
+
 @app.route('/create', methods=['GET', 'POST'])
+@login_required
 def create_petition():
     if request.method == 'POST':
-        # Process the form data and save the petition
         category = request.form['category']
         title = request.form['title']
         description = request.form['description']
         tag_line = request.form['tag_line']
-        # Add logic to save the petition
+
+        new_petition = Petition(
+            title=title,
+            tag_line=tag_line,
+            description=description,
+            author_id=current_user.id
+        )
+        db.session.add(new_petition)
+        db.session.commit()
         return redirect(url_for('home'))
     return render_template('create.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        # Add login logic here
-        return redirect(url_for('home'))
-    return render_template('login.html')
-
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if request.method == 'POST':
-        # Add signup logic here
+    form = SignupForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        email = form.email.data
+        password = form.password.data
+        user = User(username=username, email=email)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)
         return redirect(url_for('home'))
-    return render_template('signup.html')
+    return render_template('signup.html', form=form)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            return redirect(url_for('home'))
+        else:
+            flash('Login Unsuccessful. Please check email and password', 'danger')
+    return render_template('login.html', form=form)
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
 
 
 @app.route('/settings', methods=['GET', 'POST'])
+@login_required
 def settings():
     if request.method == 'POST':
-    # Add settings logic here
+        # Add settings logic here
         return redirect(url_for('home'))
     return render_template('settings.html')
 
