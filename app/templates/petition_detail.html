@@ -10,7 +10,7 @@
     <div class="row mt-4">
         <div class="col-md-8">
             <img src="{{ petition.image_url }}" class="img-fluid mb-3" alt="{{ petition.title }}"
-                 style="width: 100%; height: auto; object-fit: cover;">
+                style="width: 100%; height: auto; object-fit: cover;">
             <div class="d-flex align-items-center mb-3">
                 <i class="fas fa-user"></i>
                 <a href="{{ url_for('user_profile', username=petition.user.username) }}" class="ml-2">Started By {{
@@ -22,11 +22,13 @@
             <div class="mt-4">
                 <h4>Signatures</h4>
                 <div class="d-flex justify-content-start mb-3">
-                    <button class="btn btn-sm btn-outline-primary mr-2" onclick="filterSignatures('most_recent')">Most
+                    <a class="btn btn-sm btn-outline-primary mr-2"
+                        href="{{ url_for('petition_detail', petition_id=petition.id) }}?filter=most_recent">Most
                         Recent
-                    </button>
-                    <button class="btn btn-sm btn-outline-primary" onclick="filterSignatures('most_liked')">Most Liked
-                    </button>
+                    </a>
+                    <a class="btn btn-sm btn-outline-primary"
+                        href="{{ url_for('petition_detail', petition_id=petition.id) }}?filter=most_liked">Most Liked
+                    </a>
                 </div>
                 <div class="signatures">
                     {% for signature in signatures %}
@@ -57,7 +59,7 @@
 
 
                         <button class="btn btn-outline-danger btn-sm like-button mt-2"
-                                data-signature-id="{{ signature.id }}">
+                            data-signature-id="{{ signature.id }}">
                             {% if current_user.is_authenticated and signature.likes|selectattr('user_id', 'eq',
                             current_user.id)|list %}
                             <i class="fas fa-heart"></i>
@@ -75,9 +77,9 @@
         <div class="col-md-4">
             <div class="progress mb-3" style="height: 30px;">
                 <div class="progress-bar" role="progressbar"
-                     style="width: {{ (signatures | length / target_signatures) * 100 }}%;"
-                     aria-valuenow="{{ signatures | length }}" aria-valuemin="0"
-                     aria-valuemax="{{ target_signatures }}"></div>
+                    style="width: {{ (signatures | length / target_signatures) * 100 }}%;"
+                    aria-valuenow="{{ signatures | length }}" aria-valuemin="0" aria-valuemax="{{ target_signatures }}">
+                </div>
             </div>
             <div class="d-flex justify-content-between">
                 <div class="text-center">
@@ -90,17 +92,17 @@
                 </div>
             </div>
             <form id="signPetitionForm" action="{{ url_for('sign_petition', petition_id=petition.id) }}" method="post"
-                  class="mb-3">
+                class="mb-3">
                 {% if can_sign %}
                 <div class="form-group text-center">
                     <i class="fas fa-user-circle fa-3x" id="userIcon"></i>
                     <p class="mt-2" id="usernameText">{{ current_user.username }}</p>
                     <button type="button" class="btn btn-outline-secondary mb-3" id="signAnonymously"
-                            onclick="toggleAnonymous()"><i class="fas fa-user-secret"></i> Sign Anonymously
+                        onclick="toggleAnonymous()"><i class="fas fa-user-secret"></i> Sign Anonymously
                     </button>
                     <input type="hidden" name="is_anonymous" id="is_anonymous" value="0">
                     <textarea class="form-control" id="reason" name="reason" rows="3"
-                              placeholder="Optional: Why are you signing this petition?"></textarea>
+                        placeholder="Optional: Why are you signing this petition?"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary">Sign this Petition</button>
                 {% else %}
@@ -108,7 +110,7 @@
                     <i class="fas fa-user-circle fa-3x"></i>
                     <p class="mt-2">{{ current_user.username }}</p>
                     <textarea class="form-control" id="reason" name="reason" rows="3"
-                              placeholder="You can't sign this petition at the moment." disabled></textarea>
+                        placeholder="You can't sign this petition at the moment." disabled></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary" disabled>Sign this Petition</button>
                 {% endif %}
@@ -135,27 +137,25 @@
             }
         }).then(response => {
             if (response.redirected) {
-                window.location.href = response.url;
-            } else {
-                return response.json().then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Thank you!',
-                            text: 'Thank you for signing this petition.',
-                            icon: 'success'
-                        }).then(() => {
-                            window.location.reload();
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: data.message,
-                            icon: 'error'
-                        });
-                    }
-                });
+                console.log(response);
+                if (response.ok) {
+                    Swal.fire({
+                        title: 'Thank you!',
+                        text: 'Thank you for signing this petition.',
+                        icon: 'success'
+                    }).then(() => {
+                        window.location.reload();
+                    })
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: response.message,
+                        icon: 'error'
+                    });
+                }
             }
         }).catch(error => {
+            console.log(error);
             Swal.fire({
                 title: 'Error!',
                 text: 'An unexpected error occurred.',
@@ -202,6 +202,9 @@
                         const heartIcon = likeButton.querySelector('.fa-heart');
                         heartIcon.classList.toggle('fas');
                         heartIcon.classList.toggle('far');
+                        
+                        message = data.message == 'added' ? 'TOAST|Added Like' : 'TOAST|Removed Like'
+                        display([['success', message]])
                     }
                 },
                 error: function (error) {

@@ -33,6 +33,8 @@ class EditPetitionForm(FlaskForm):
     description = TextAreaField('Description', validators=[DataRequired()])
     tag_line = StringField('Tag Line', validators=[DataRequired()])
     image_url = StringField('Image URL')
+    status = SelectField('Status', choices=[('Closed', 'Closed'), ('Victory', 'Victory'),
+                                                ('Waiting', 'Waiting')], validators=[DataRequired()])
     submit = SubmitField('Update Petition')
 
 

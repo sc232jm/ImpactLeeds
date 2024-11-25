@@ -61,8 +61,8 @@ def settings():
         current_user.about_me = form.about_me.data
         db.session.commit()
 
-        flash('Settings updated successfully!', 'success')
-        return redirect(url_for('settings'))
+        flash('TOAST|Settings updated successfully!', 'success')
+        return redirect(url_for('user_profile', username=current_user.username))
 
     return render_template('settings.html', form=form)
 
@@ -90,6 +90,7 @@ def petition_detail(petition_id):
     sort_by = request.args.get('filter', 'most_recent')
 
     if sort_by == 'most_liked':
+        #MISSING LIKES??
         signatures = Signature.query.filter_by(petition_id=petition_id).join(Like,
                                                                              Signature.id == Like.signature_id).group_by(
             Signature.id).order_by(db.func.count(Like.id).desc()).all()
@@ -146,6 +147,8 @@ def delete_petition():
 @app.route('/petition/<int:petition_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_petition(petition_id):
+    status_list = ['Closed', 'Waiting', 'Victory']
+
     petition = Petition.query.get_or_404(petition_id)
 
     if petition.author_id != current_user.id:
@@ -160,8 +163,9 @@ def edit_petition(petition_id):
         petition.description = form.description.data
         petition.image_url = form.image_url.data
 
-        status = request.form.get('status')
-        petition.status_badges = [status]
+        status = form.status.data
+
+        petition.status_badges = [status] + list(filter(lambda x: x not in status_list, petition.status_badges))
 
         db.session.commit()
 
@@ -171,7 +175,6 @@ def edit_petition(petition_id):
     return render_template('edit.html', form=form, petition=petition)
 
 
-# LIKES FOR COMMENTS
 @app.route('/petition/<int:petition_id>/sign', methods=['POST'])
 @login_required
 def sign_petition(petition_id):
@@ -187,7 +190,7 @@ def sign_petition(petition_id):
 
     reason_text = request.form['reason']
     profanity_level = predict([reason_text])[0]
-    reason_flagged = profanity_level > 0.8
+    reason_flagged = profanity_level > 0.9
 
     is_anonymous = request.form['is_anonymous'] == "1"
 
@@ -200,7 +203,6 @@ def sign_petition(petition_id):
     )
     db.session.add(new_signature)
     db.session.commit()
-    flash('Thank you for signing the petition!', 'success')
 
     return redirect(request.referrer)
 
@@ -208,16 +210,15 @@ def sign_petition(petition_id):
 @app.route('/signature/<int:signature_id>/like', methods=['POST'])
 @login_required
 def like_signature(signature_id):
-    signature = Signature.query.get_or_404(signature_id)
     existing_like = Like.query.filter_by(user_id=current_user.id, signature_id=signature_id).first()
 
     if existing_like:
         db.session.delete(existing_like)
-        message = 'Like removed.'
+        message = 'removed'
     else:
         new_like = Like(user_id=current_user.id, signature_id=signature_id)
         db.session.add(new_like)
-        message = 'Like added.'
+        message = 'added'
 
     db.session.commit()
 
@@ -283,7 +284,7 @@ def signup():
         db.session.add(user)
         db.session.commit()
         login_user(user)
-        flash('Signup Successful!', 'success')
+        flash('TOAST|Signup Successful!', 'success')
         return redirect(url_for('home'))
     elif form.errors:
         for field, errors in form.errors.items():
@@ -299,7 +300,7 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user)
-            flash('Login Successful!', 'success')
+            flash('TOAST|Login Successful!', 'success')
             return redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
