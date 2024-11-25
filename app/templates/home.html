@@ -9,7 +9,6 @@
     <a class="btn btn-primary btn-lg" href="{{ url_for('browse') }}" role="button">Browse Petitions</a>
 </div>
 
-<!-- Derived from: https://getbootstrap.com/docs/5.3/components/carousel/ -->
 <div id="carousel" class="carousel slide mt-4" data-ride="carousel" data-interval="5000">
     <ol class="carousel-indicators">
         {% for petition in petitions %}
@@ -19,23 +18,9 @@
     <div class="carousel-inner">
         {% for petition in petitions %}
         <div class="carousel-item {% if loop.first %}active{% endif %}">
-            <a href="{{ url_for('petition_detail', petition_id=petition.id) }}" class="d-flex align-items-center text-decoration-none text-dark w-100">
-                <div class="row no-gutters w-100">
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <span class="badge badge-{{ petition.status_badge }}">{{ petition.status }}</span>
-                            <h5 class="card-title mt-2">{{ petition.title }}</h5>
-                            <p class="card-text">{{ petition.tag_line }}</p>
-                        </div>
-                        <div class="card-footer d-flex justify-content-between">
-                            <small class="text-muted">By {{ petition.author }}</small>
-                            <small class="text-muted">{{ petition.created_at }} • {{ petition.signaturesNum }} signatures</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <img src="{{ petition.image_url }}" class="card-img" alt="{{ petition.title }}">
-                    </div>
-                </div>
+            <a href="{{ url_for('petition_detail', petition_id=petition.id) }}"
+               class="d-flex align-items-center text-decoration-none text-dark w-100">
+                {% include 'components/card.html' %}
             </a>
         </div>
         {% endfor %}

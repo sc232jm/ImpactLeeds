@@ -1,106 +1,266 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
-from app import app, db, login_manager
-from markupsafe import Markup
+from flask import render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User, Petition, Signature
-from app.forms import SignupForm, LoginForm
 
-petitions = [
-    {
-        'id': 1,
-        'title': 'Improve Library Hours',
-        'tag_line': 'Statue of Owen Johnson',
-        'description': 'Extend the library hours during exam periods.',
-        'author': 'Jane Doe',
-        'created_at': '2024-11-15',
-        'signaturesNum': 320,
-        'target_signatures': 500,
-        'image_url': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJTcLeoDwmVmpJHNs8Ni9-4MHDhcFDQ-yr-g&s',
-        'status': 'Victory!',
-        'status_badge': 'success',
-        'signatures': [
-            {'author': 'Student A', 'text': 'Great initiative!'}
-        ],
-        'signers': []
-    },
-    {
-        'id': 2,
-        'title': 'Statue of Owen Johnson',
-        'tag_line': 'Statue of Owen Johnson',
-        'description': 'Introduce a statue of our lord and saviour Owen Johnson.',
-        'author': 'John Smith',
-        'created_at': '2024-11-14',
-        'signaturesNum': 450,
-        'target_signatures': 1000,
-        'image_url': 'https://www.leeds.ac.uk/images/resized/800x400-0-0-1-80-Parkinson_building_from_road_800x400.jpg',
-        'status': 'Waiting',
-        'status_badge': 'warning',
-        'signatures': []
-    }
-]
+from app import app, db, login_manager
+from app.models import User, Petition, Signature, Like
+from app.forms import SignupForm, LoginForm, CreatePetitionForm, SignPetitionForm, EditPetitionForm, EditSettingsForm
+
+import markdown
+from profanity_check import predict
+
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
 @app.route('/')
 def home():
-    return render_template('home.html', petitions=petitions)
+    petitions = Petition.query.all()
+
+    sorted_petitions = sorted(petitions, key=lambda p: len(p.signatures), reverse=True)
+
+    top_petitions = sorted_petitions[:5]
+
+    return render_template('home.html', petitions=top_petitions)
 
 
 @app.route('/browse')
 def browse():
+    filter = request.args.get('filter', 'all')
+
+    if filter == 'popular':
+        petitions = Petition.query.all()
+
+        petitions = sorted(petitions, key=lambda p: len(p.signatures), reverse=True)
+    elif filter == 'latest':
+        petitions = Petition.query.order_by(Petition.created_at.desc()).all()
+    elif filter == 'victories':
+        petitions = Petition.query.filter(Petition.status_badges.contains(['Victory'])).all()
+    else:
+        petitions = Petition.query.all()
+
     return render_template('browse.html', petitions=petitions)
 
 
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    form = EditSettingsForm(obj=current_user)
+
+    if form.validate_on_submit():
+        # Check for duplicate username
+        if User.query.filter_by(username=form.username.data).first() and form.username.data != current_user.username:
+            flash('Username already taken', 'error')
+            return redirect(url_for('settings'))
+
+        # Update user details
+        current_user.first_name = form.first_name.data
+        current_user.last_name = form.last_name.data
+        current_user.username = form.username.data
+        current_user.about_me = form.about_me.data
+        db.session.commit()
+
+        flash('Settings updated successfully!', 'success')
+        return redirect(url_for('settings'))
+
+    return render_template('settings.html', form=form)
+
+
+@app.route('/user/<username>')
+@login_required
+def user_profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    created_petitions = Petition.query.filter_by(author_id=user.id).all()
+    signed_petitions = Petition.query.join(Signature).filter(Signature.author_id == user.id).all()
+
+    # Render the about me section in markdown
+    user_about_me = markdown.markdown(user.about_me) if user.about_me else None
+
+    return render_template('user_profile.html', user=user, created_petitions=created_petitions,
+                           signed_petitions=signed_petitions, user_about_me=user_about_me)
+
+
 @app.route('/petition/<int:petition_id>')
+@login_required
 def petition_detail(petition_id):
-    petition = next((p for p in petitions if p['id'] == petition_id), None)
-    if not petition:
-        return "Petition not found", 404
-    return render_template('petition_detail.html', petition=petition)
+    petition = Petition.query.get_or_404(petition_id)
+    form = SignPetitionForm()
+
+    sort_by = request.args.get('filter', 'most_recent')
+
+    if sort_by == 'most_liked':
+        signatures = Signature.query.filter_by(petition_id=petition_id).join(Like,
+                                                                             Signature.id == Like.signature_id).group_by(
+            Signature.id).order_by(db.func.count(Like.id).desc()).all()
+    else:
+        signatures = Signature.query.filter_by(petition_id=petition_id).order_by(Signature.signed_at.desc()).all()
+
+    # Calculate the target signatures
+    signatures_num = len(signatures)
+    if signatures_num == 0:
+        target_signatures = 5
+    else:
+        target_signatures = (signatures_num // 5 + 1) * 5
+
+    # Render the description in Markdown
+    petition.description = markdown.markdown(petition.description)
+
+    # Check if the user has already signed the petition
+    already_signed = Signature.query.filter_by(petition_id=petition_id, author_id=current_user.id).first() is not None
+    can_sign = not already_signed and 'Victory' not in petition.status_badges and 'Closed' not in petition.status_badges
+
+    return render_template('petition_detail.html', petition=petition, signatures=signatures,
+                           target_signatures=target_signatures, form=form, can_sign=can_sign, sort_by=sort_by)
 
 
+@app.route('/my_petitions')
+@login_required
+def my_petitions():
+    petitions = Petition.query.filter_by(author_id=current_user.id).all()
+    return render_template('my_petitions.html', petitions=petitions)
+
+
+@app.route('/petition/delete', methods=['POST'])
+@login_required
+def delete_petition():
+    data = request.get_json()
+    petition_id = data.get('petition_id')
+
+    if petition_id is None:
+        return jsonify({'error': 'Invalid petition ID'}), 400
+
+    petition = Petition.query.get_or_404(petition_id)
+
+    if petition.author_id != current_user.id:
+        return jsonify({'error': 'You do not have permission to delete this petition.'}), 403
+
+    # Delete all signatures associated with the petition
+    Signature.query.filter_by(petition_id=petition_id).delete()
+    db.session.delete(petition)
+    db.session.commit()
+
+    return jsonify({'message': 'Petition deleted successfully.'}), 200
+
+
+@app.route('/petition/<int:petition_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_petition(petition_id):
+    petition = Petition.query.get_or_404(petition_id)
+
+    if petition.author_id != current_user.id:
+        flash('You do not have permission to edit this petition.', 'error')
+        return redirect(url_for('my_petitions'))
+
+    form = EditPetitionForm(obj=petition)
+
+    if form.validate_on_submit():
+        petition.title = form.title.data
+        petition.tag_line = form.tag_line.data
+        petition.description = form.description.data
+        petition.image_url = form.image_url.data
+
+        status = request.form.get('status')
+        petition.status_badges = [status]
+
+        db.session.commit()
+
+        flash('Petition updated successfully.', 'success')
+        return redirect(url_for('petition_detail', petition_id=petition.id))
+
+    return render_template('edit.html', form=form, petition=petition)
+
+
+# LIKES FOR COMMENTS
 @app.route('/petition/<int:petition_id>/sign', methods=['POST'])
 @login_required
 def sign_petition(petition_id):
-    reason_text = request.form['reason']
-    petition = Petition.query.get(petition_id)
-    if petition:
-        new_signature = Signature(
-            author_id=current_user.id,
-            petition_id=petition_id,
-            reason=reason_text
-        )
-        db.session.add(new_signature)
-        db.session.commit()
-        db.session.commit()
-    return redirect(url_for('petition_detail', petition_id=petition_id))
+    petition = Petition.query.get_or_404(petition_id)
 
+    # Check if the user has already signed the petition
+    already_signed = Signature.query.filter_by(petition_id=petition_id, author_id=current_user.id).first() is not None
+    can_sign = not already_signed and 'Victory' not in petition.status_badges and 'Closed' not in petition.status_badges
+
+    if not can_sign:
+        flash('You are unable to sign this petition', 'info')
+        return jsonify({'success': False, 'message': 'You are unable to sign this petition.', 'can_sign': True}), 200
+
+    reason_text = request.form['reason']
+    profanity_level = predict([reason_text])[0]
+    reason_flagged = profanity_level > 0.8
+
+    is_anonymous = request.form['is_anonymous'] == "1"
+
+    new_signature = Signature(
+        author_id=current_user.id,
+        petition_id=petition_id,
+        reason=reason_text,
+        is_anonymous=is_anonymous,
+        flagged=reason_flagged
+    )
+    db.session.add(new_signature)
+    db.session.commit()
+    flash('Thank you for signing the petition!', 'success')
+
+    return redirect(request.referrer)
+
+
+@app.route('/signature/<int:signature_id>/like', methods=['POST'])
+@login_required
+def like_signature(signature_id):
+    signature = Signature.query.get_or_404(signature_id)
+    existing_like = Like.query.filter_by(user_id=current_user.id, signature_id=signature_id).first()
+
+    if existing_like:
+        db.session.delete(existing_like)
+        message = 'Like removed.'
+    else:
+        new_like = Like(user_id=current_user.id, signature_id=signature_id)
+        db.session.add(new_like)
+        message = 'Like added.'
+
+    db.session.commit()
+
+    like_count = Like.query.filter_by(signature_id=signature_id).count()
+
+    return jsonify({'success': True, 'like_count': like_count, 'message': message})
 
 
 @app.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_petition():
-    if request.method == 'POST':
-        category = request.form['category']
-        title = request.form['title']
-        description = request.form['description']
-        tag_line = request.form['tag_line']
+    form = CreatePetitionForm()
+    if form.validate_on_submit():
+        try:
+            category = form.category.data
+            title = form.title.data
+            description = form.description.data
+            tag_line = form.tag_line.data
+            image_url = form.image_url.data or 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJTcLeoDwmVmpJHNs8Ni9-4MHDhcFDQ-yr-g&s'
+            status_badges = ['Waiting', category]
 
-        new_petition = Petition(
-            title=title,
-            tag_line=tag_line,
-            description=description,
-            author_id=current_user.id
-        )
-        db.session.add(new_petition)
-        db.session.commit()
-        return redirect(url_for('home'))
-    return render_template('create.html')
+            new_petition = Petition(
+                title=title,
+                tag_line=tag_line,
+                # store as md
+                description=description,
+                image_url=image_url,
+                author_id=current_user.id,
+                status_badges=status_badges
+            )
+            db.session.add(new_petition)
+            db.session.commit()
+
+            flash('Petition created successfully!', 'success')
+            return redirect(url_for('petition_detail', petition_id=new_petition.id))
+        except Exception as e:
+            flash(f'An error occurred: {str(e)}', 'danger')
+            return redirect(url_for('create_petition'))
+
+    return render_template('create.html', form=form)
 
 
-
+# ENSURE UNIQUE
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = SignupForm()
@@ -108,12 +268,27 @@ def signup():
         username = form.username.data
         email = form.email.data
         password = form.password.data
+
+        # Check if username or email already exists
+        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        if existing_user:
+            if existing_user.username == username:
+                flash('Username already exists. Please choose a different one.', 'danger')
+            if existing_user.email == email:
+                flash('Email already exists. Please choose a different one.', 'danger')
+            return render_template('signup.html', form=form)
+
         user = User(username=username, email=email)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
         login_user(user)
+        flash('Signup Successful!', 'success')
         return redirect(url_for('home'))
+    elif form.errors:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(error, 'danger')
     return render_template('signup.html', form=form)
 
 
@@ -124,6 +299,7 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user)
+            flash('Login Successful!', 'success')
             return redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
@@ -137,15 +313,6 @@ def logout():
     return redirect(url_for('home'))
 
 
-@app.route('/settings', methods=['GET', 'POST'])
-@login_required
-def settings():
-    if request.method == 'POST':
-        # Add settings logic here
-        return redirect(url_for('home'))
-    return render_template('settings.html')
-
-
 @app.route('/search')
 def search():
     return render_template('search.html')
@@ -154,37 +321,36 @@ def search():
 @app.route('/search_results', methods=['GET'])
 def search_results():
     query = request.args.get('query', '').lower()
-    if len(query) < 3:
-        return render_template('search.html', results=[], message="Query must be more than 3 characters long.")
+    petitions = Petition.query.all()
 
-    def highlight(text, query):
-        start = 0
-        highlighted = ""
-        lower_text = text.lower()
-        while start < len(text):
-            index = lower_text.find(query, start)
-            if index == -1:
-                highlighted += text[start:]
-                break
-            highlighted += text[start:index] + f"<mark>{text[index:index + len(query)]}</mark>"
-            start = index + len(query)
-        return Markup(highlighted)
+    def highlight(text, keyword):
+        return text.lower().replace(keyword, f'<mark>{keyword}</mark>')
 
     results = [
-        {
-            'id': petition['id'],
-            'title': highlight(petition['title'], query),
-            'description': highlight(petition['description'], query),
-            'author': highlight(petition['author'], query),
-            'created_at': petition['created_at'],
-            'signaturesNum': petition['signaturesNum'],
-            'image_url': petition['image_url'],
-            'status': petition['status'],
-            'status_badge': petition['status_badge']
-        }
-        for petition in petitions if query in petition['title'].lower() or
-                                     query in petition['description'].lower() or
-                                     query in petition['author'].lower()
+        petition
+        for petition in petitions if query in petition.title.lower() or
+                                     query in petition.description.lower() or
+                                     query in petition.user.username.lower()
     ]
 
-    return render_template('search.html', results=results)
+    # Apply highlighting to the matched parts
+    for petition in results:
+        petition.title = highlight(petition.title, query)
+        petition.description = highlight(petition.description, query)
+        petition.user.username = highlight(petition.user.username, query)
+
+    message = None
+    if not results:
+        message = 'No results found'
+
+    return render_template('search.html', results=results, message=message)
+
+
+@app.route('/privacy')
+def privacy_policy():
+    return render_template('privacy.html')
+
+
+@app.route('/terms')
+def terms_and_conditions():
+    return render_template('terms.html')

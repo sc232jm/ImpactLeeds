@@ -9,39 +9,213 @@
     </div>
     <div class="row mt-4">
         <div class="col-md-8">
-            <img src="{{ petition.image_url }}" class="img-fluid mb-3" alt="{{ petition.title }}" style="max-width: 100%; height: auto;">
+            <img src="{{ petition.image_url }}" class="img-fluid mb-3" alt="{{ petition.title }}"
+                 style="width: 100%; height: auto; object-fit: cover;">
             <div class="d-flex align-items-center mb-3">
                 <i class="fas fa-user"></i>
-                <span class="ml-2">Started By {{ petition.author }}</span>
+                <a href="{{ url_for('user_profile', username=petition.user.username) }}" class="ml-2">Started By {{
+                    petition.user.username }}</a>
             </div>
             <h4>Why this matters?</h4>
-            <p>{{ petition.description }}</p>
+            <div>{{ petition.description | safe }}</div>
 
             <div class="mt-4">
                 <h4>Signatures</h4>
+                <div class="d-flex justify-content-start mb-3">
+                    <button class="btn btn-sm btn-outline-primary mr-2" onclick="filterSignatures('most_recent')">Most
+                        Recent
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="filterSignatures('most_liked')">Most Liked
+                    </button>
+                </div>
                 <div class="signatures">
-                    {% for signature in petition.signatures %}
-                    <div class="comment mb-2">
-                        <strong>{{ signature.author }}:</strong> {{ signature.text }}
+                    {% for signature in signatures %}
+                    {% if signature.reason %}
+                    <div class="comment mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong>
+                                {% if not signature.is_anonymous %}
+                                <a href="{{ url_for('user_profile', username=signature.user.username) }}">{{
+                                    signature.user.username }}</a>&nbsp;·&nbsp;
+                                {% else %}
+                                Anonymous&nbsp;·&nbsp;
+                                {% endif %}
+                                <small class="text-muted">{{ signature.signed_at.strftime('%Y-%m-%d %H:%M:%S')
+                                    }}</small>
+                            </strong>
+                        </div>
+                        {% if signature.flagged %}
+                        <div class="d-flex align-items-center">
+                            <div class="blurred-text" onclick="toggleBlur(this)">{{ signature.reason }}</div>
+                            <span class="content-warning-tag ">
+                                <i class="fas fa-exclamation-triangle"></i> Content Warning
+                            </span>
+                        </div>
+                        {% else %}
+                        <div>{{ signature.reason }}</div>
+                        {% endif %}
+
+
+                        <button class="btn btn-outline-danger btn-sm like-button mt-2"
+                                data-signature-id="{{ signature.id }}">
+                            {% if current_user.is_authenticated and signature.likes|selectattr('user_id', 'eq',
+                            current_user.id)|list %}
+                            <i class="fas fa-heart"></i>
+                            {% else %}
+                            <i class="far fa-heart"></i>
+                            {% endif %}
+                            <span class="like-count">{{ signature.likes | length }}</span>
+                        </button>
                     </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="progress mb-3" style="height: 30px;">
-                <div class="progress-bar" role="progressbar" style="width: {{ (petition.signaturesNum / petition.target_signatures) * 100 }}%;" aria-valuenow="{{ petition.signaturesNum }}" aria-valuemin="0" aria-valuemax="{{ petition.target_signatures }}">
+                <div class="progress-bar" role="progressbar"
+                     style="width: {{ (signatures | length / target_signatures) * 100 }}%;"
+                     aria-valuenow="{{ signatures | length }}" aria-valuemin="0"
+                     aria-valuemax="{{ target_signatures }}"></div>
+            </div>
+            <div class="d-flex justify-content-between">
+                <div class="text-center">
+                    <span style="color: blue; font-weight: bold;">{{ signatures | length }}</span>
+                    <div style="color: blue;">Signatures</div>
+                </div>
+                <div class="text-center">
+                    <span style="color: blue; font-weight: bold;">{{ target_signatures }}</span>
+                    <div style="color: blue;">Goal</div>
                 </div>
             </div>
-            <p>{{ petition.signaturesNum }} / {{ petition.target_signatures }} signatures</p>
-            <form action="{{ url_for('sign_petition', petition_id=petition.id) }}" method="post" class="mb-3">
-                <div class="form-group">
-                    <label for="reason">Sign this Petition</label>
-                    <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="Optional: Why are you signing this petition?"></textarea>
+            <form id="signPetitionForm" action="{{ url_for('sign_petition', petition_id=petition.id) }}" method="post"
+                  class="mb-3">
+                {% if can_sign %}
+                <div class="form-group text-center">
+                    <i class="fas fa-user-circle fa-3x" id="userIcon"></i>
+                    <p class="mt-2" id="usernameText">{{ current_user.username }}</p>
+                    <button type="button" class="btn btn-outline-secondary mb-3" id="signAnonymously"
+                            onclick="toggleAnonymous()"><i class="fas fa-user-secret"></i> Sign Anonymously
+                    </button>
+                    <input type="hidden" name="is_anonymous" id="is_anonymous" value="0">
+                    <textarea class="form-control" id="reason" name="reason" rows="3"
+                              placeholder="Optional: Why are you signing this petition?"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary">Sign this Petition</button>
+                {% else %}
+                <div class="form-group text-center">
+                    <i class="fas fa-user-circle fa-3x"></i>
+                    <p class="mt-2">{{ current_user.username }}</p>
+                    <textarea class="form-control" id="reason" name="reason" rows="3"
+                              placeholder="You can't sign this petition at the moment." disabled></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" disabled>Sign this Petition</button>
+                {% endif %}
             </form>
         </div>
     </div>
 </div>
+
+<div id="flash-messages" style="display: none;">
+    {{ get_flashed_messages(with_categories=true) | tojson }}
+</div>
+
+<script>
+    document.getElementById('signPetitionForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                return response.json().then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Thank you!',
+                            text: 'Thank you for signing this petition.',
+                            icon: 'success'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: data.message,
+                            icon: 'error'
+                        });
+                    }
+                });
+            }
+        }).catch(error => {
+            Swal.fire({
+                title: 'Error!',
+                text: 'An unexpected error occurred.',
+                icon: 'error'
+            });
+        });
+    });
+
+    function toggleAnonymous() {
+        const userIcon = document.getElementById('userIcon');
+        const usernameText = document.getElementById('usernameText');
+        const anonButton = document.getElementById('signAnonymously');
+        const isAnonymousInput = document.getElementById('is_anonymous');
+
+        userIcon.classList.toggle('d-none');
+        usernameText.classList.toggle('d-none');
+        anonButton.classList.toggle('btn-outline-secondary');
+        anonButton.classList.toggle('btn-secondary');
+
+        if (isAnonymousInput.value === "0") {
+            isAnonymousInput.value = "1";
+        } else {
+            isAnonymousInput.value = "0";
+        }
+    }
+
+    document.querySelectorAll('.like-button').forEach(button => {
+        button.addEventListener('click', function () {
+            const signatureId = this.getAttribute('data-signature-id');
+            const likeButton = this;
+
+            $.ajax({
+                url: `/signature/${signatureId}/like`,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function (data) {
+                    if (data.success) {
+                        const likeCountSpan = likeButton.querySelector('.like-count');
+                        likeCountSpan.innerText = data.like_count;
+
+                        const heartIcon = likeButton.querySelector('.fa-heart');
+                        heartIcon.classList.toggle('fas');
+                        heartIcon.classList.toggle('far');
+                    }
+                },
+                error: function (error) {
+                    console.error('Error liking the comment:', error);
+                }
+            });
+        });
+    });
+
+    function toggleBlur(element) {
+        element.classList.toggle('unblurred');
+        element.classList.toggle('blurred-text');
+    }
+
+
+</script>
 {% endblock %}

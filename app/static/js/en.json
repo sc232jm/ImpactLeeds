@@ -1,0 +1,40 @@
+{
+  "consentModal": {
+    "label": "Cookie Consent",
+    "title": "Hello traveller, it's cookie time!",
+    "description": "Our website uses essential cookies to ensure its proper operation and tracking cookies to understand how you interact with it. The latter will be set only after consent.",
+    "acceptAllBtn": "Accept all",
+    "closeIconLabel": "Reject all and close",
+    "acceptNecessaryBtn": "Reject all",
+    "showPreferencesBtn": "Manage preferences",
+    "footer": "<a href=\"/privacy\">Privacy Policy</a><a href=\"/terms\">Terms and conditions</a>"
+  },
+  "preferencesModal": {
+    "title": "Consent preferences center",
+    "acceptAllBtn": "Accept all",
+    "acceptNecessaryBtn": "Reject all",
+    "savePreferencesBtn": "Save preferences",
+    "closeIconLabel": "Close modal",
+    "serviceCounterLabel": "Service|Services",
+    "sections": [
+      {
+        "title": "Somebody said ... cookies?",
+        "description": "We use cookies to ensure you get the best experience on our website. Cookies help us personalize content and ads, provide social media features, and analyze our traffic. By using our website, you consent to our use of cookies."
+      },
+      {
+        "title": "Strictly necessary cookies <span class=\"pm__badge\">Always enabled</span>",
+        "description": "These cookies are essential for the website to function properly. They cannot be switched off in our systems and are usually only set in response to actions made by you, such as setting your privacy preferences, logging in, or filling in forms.",
+        "linkedCategory": "necessary"
+      },
+      {
+        "title": "Tracking cookies",
+        "description": "These optional cookies help us analyse site usage to enhance your experience and improve our services.",
+        "linkedCategory": "analytics"
+      },
+      {
+        "title": "More information",
+        "description": "For any queries in relation to our policy on cookies and your choices, please email: sc232jm@leeds.ac.uk."
+      }
+    ]
+  }
+}

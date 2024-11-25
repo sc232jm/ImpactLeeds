@@ -1,10 +1,11 @@
+/* static/js/create.js */
 /*jshint esversion: 6 */
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     let currentStep = 1;
     let selectedCategory = null;
     const progressBar = document.getElementById('progressStep');
     const steps = document.querySelectorAll('.step');
-    const simplemde = new SimpleMDE({ element: document.getElementById("description") });
+    const simplemde = new SimpleMDE({element: document.getElementById("description")});
 
     function showStep(step) {
         steps.forEach((stepElement, index) => {
@@ -35,6 +36,8 @@ document.addEventListener("DOMContentLoaded", function() {
                         <div class="col-md-8">
                             <div class="card-body">
                                 <span class="badge badge-primary">Draft</span>
+                                <span class="badge badge-warning">Waiting</span>
+                                <span class="badge badge-info">${data.category}</span>
                                 <h5 class="card-title mt-2">${data.title}</h5>
                                 <div class="card-text markdown-content">${simplemde.options.previewRender(data.description)}</div>
                             </div>
@@ -44,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJTcLeoDwmVmpJHNs8Ni9-4MHDhcFDQ-yr-g&s" class="card-img" alt="${data.title}">
+                            <img src="${data.image_url || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJTcLeoDwmVmpJHNs8Ni9-4MHDhcFDQ-yr-g&s'}" class="card-img" alt="${data.title}">
                         </div>
                     </div>
                 </div>
@@ -53,44 +56,45 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     document.querySelectorAll('.category-option button').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             selectedCategory = this.getAttribute('data-category');
+            document.getElementById('category').value = selectedCategory;  // Set the hidden input value
             updateButtonState();
             document.getElementById('nextStep1').disabled = false;
         });
     });
 
-    document.getElementById('nextStep1').addEventListener('click', function() {
+    document.getElementById('nextStep1').addEventListener('click', function () {
         showStep(2);
         progressBar.style.width = '33%';
         progressBar.setAttribute('aria-valuenow', '33');
     });
 
-    document.getElementById('title').addEventListener('input', function() {
+    document.getElementById('title').addEventListener('input', function () {
         document.getElementById('nextStep2').disabled = this.value.trim() === '';
     });
 
-    document.getElementById('nextStep2').addEventListener('click', function() {
+    document.getElementById('nextStep2').addEventListener('click', function () {
         showStep(3);
         progressBar.style.width = '66%';
         progressBar.setAttribute('aria-valuenow', '66');
     });
 
-    document.getElementById('prevStep2').addEventListener('click', function() {
+    document.getElementById('prevStep2').addEventListener('click', function () {
         showStep(1);
         progressBar.style.width = '0%';
         progressBar.setAttribute('aria-valuenow', '0');
         updateButtonState();
     });
 
-    document.getElementById('prevStep3').addEventListener('click', function() {
+    document.getElementById('prevStep3').addEventListener('click', function () {
         showStep(2);
         progressBar.style.width = '33%';
         progressBar.setAttribute('aria-valuenow', '33');
     });
 
     // Handle mockup generation
-    document.getElementById('showMockup').addEventListener('click', function(event) {
+    document.getElementById('showMockup').addEventListener('click', function (event) {
         event.preventDefault();
         simplemde.codemirror.focus();
         const descriptionValue = simplemde.value();
@@ -116,29 +120,8 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('submitForm').classList.remove('d-none');
     });
 
-    // Handle form submission
-    document.getElementById('createPetitionForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const formData = new FormData(this);
-        let petitionData = {};
-        formData.forEach((value, key) => {
-            petitionData[key] = value;
-        });
-        petitionData['category'] = selectedCategory;
-
-        Swal.fire({
-            title: 'Submitted!',
-            text: 'Your petition has been submitted successfully.',
-            icon: 'success'
-        }).then(() => {
-            console.log(petitionData);
-            // Optionally, you can submit the form data to the server here
-            // this.submit();
-        });
-    });
-
     // Re-render the preview if the description is updated and hide submit button
-    simplemde.codemirror.on("change", function() {
-        document.getElementById('submitForm').classList.add('d-none');
+    simplemde.codemirror.on("change", function () {
+        $('#submitForm').addClass('d-none');
     });
 });

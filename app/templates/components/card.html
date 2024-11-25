@@ -1,0 +1,38 @@
+<div class="col-md-12 mb-4">
+    <a href="{{ url_for('petition_detail', petition_id=petition.id) }}" class="card text-decoration-none text-dark">
+        <div class="row no-gutters">
+            <div class="col-md-8">
+                <div class="card-body">
+                    {% for badge in petition.status_badges %}
+                    {% if badge == 'Victory' %}
+                    <span class="badge badge-purple">{{ badge }}</span>
+                    {% elif badge == 'Closed' %}
+                    <span class="badge badge-red">{{ badge }}</span>
+                    {% else %}
+                    <span class="badge badge-info">
+                                {% if badge == 'Academic' %}
+                                    <i class="fas fa-book"></i>
+                                {% elif badge == 'Co-Curricular' %}
+                                    <i class="fas fa-running"></i>
+                                {% elif badge == 'Wellbeing' %}
+                                    <i class="fas fa-heart"></i>
+                                {% endif %}
+                                {{ badge }}
+                            </span>
+                    {% endif %}
+                    {% endfor %}
+                    <h5 class="card-title mt-2">{{ petition.title | safe }}</h5>
+                    <p class="card-text">{{ petition.tag_line | safe }}</p>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <small class="text-muted">By {{ petition.user.username | safe }}</small>
+                    <small class="text-muted">{{ petition.created_at.strftime('%B %d, %Y at %H:%M') }} • {{
+                        petition.signatures | length }} signatures</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <img src="{{ petition.image_url }}" class="card-img" alt="{{ petition.title }}">
+            </div>
+        </div>
+    </a>
+</div>

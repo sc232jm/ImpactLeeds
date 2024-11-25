@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     break;
             }
         }
-        return { score, label: strength };
+        return {score, label: strength};
     }
 
     function updatePasswordStrengthBar(score) {
