@@ -311,6 +311,7 @@ def login():
 @login_required
 def logout():
     logout_user()
+    flash('TOAST|Logged out!', 'success')
     return redirect(url_for('home'))
 
 

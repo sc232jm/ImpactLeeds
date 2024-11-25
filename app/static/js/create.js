@@ -90,6 +90,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('prevStep3').addEventListener('click', function () {
         showStep(2);
         progressBar.style.width = '33%';
+        document.getElementById('submitForm').classList.add('d-none');
+        document.getElementById('mockupContainer').innerHTML = "";
         progressBar.setAttribute('aria-valuenow', '33');
     });
 
