@@ -5,11 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leeds Petitions</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Any displayed icons that are prefixed with "fa" are from the front-awesome library -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <!-- Markdown text input for the description of petitions -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <!-- Minimalistic loading bar at the top of the page -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress/nprogress.css">
+    <!-- Required to utilise the cookie consent by Orestbida -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/iframemanager@1.2.5/dist/iframemanager.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.css">
+
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
 <body>
@@ -44,6 +49,7 @@
                 </a>
             </li>
             {% if current_user.is_authenticated %}
+            <!-- Derived from: https://getbootstrap.com/docs/5.0/components/dropdowns/ -->
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
                    aria-haspopup="true" aria-expanded="false">
@@ -80,26 +86,29 @@
     </div>
 </footer>
 
+<!-- Scripts for the specified stylesheets above -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nprogress/nprogress.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/orestbida/iframemanager@1.2.5/dist/iframemanager.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/nprogress/nprogress.js"></script>
+
+<!-- Utilising jquery and AJAX -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Utilising SweetAlert2 for better popups/notifications -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
 
-
+<!-- Local Scripts -->
 <script src="{{ url_for('static', filename='js/cookies.js') }}"></script>
 <script src="{{ url_for('static', filename='js/flash_messages.js') }}"></script>
-<script src="{{ url_for('static', filename='js/nprogress.js') }}"></script>
 <script src="{{ url_for('static', filename='js/external_links.js') }}"></script>
+<script src="{{ url_for('static', filename='js/nprogress.js') }}"></script>
 
 <!-- Derived from: https://flask.palletsprojects.com/en/stable/patterns/flashing/#flashing-with-categories -->
-<script id="flash-messages" type="application/json"> {{
-    get_flashed_messages(with_categories=true)
-    |
-    tojson
-}} </script>
+<div id="flash-messages" style="display: none;">
+    {{ get_flashed_messages(with_categories=true) | tojson }}
+</div>
 
 
 </body>

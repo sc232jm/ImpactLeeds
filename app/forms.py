@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, HiddenField
 from wtforms.fields.choices import SelectField
+from wtforms.fields.simple import BooleanField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
 
 """ 
@@ -51,5 +52,6 @@ class EditSettingsForm(FlaskForm):
 
 
 class SignPetitionForm(FlaskForm):
-    reason = TextAreaField('Reason', validators=[DataRequired()])
+    reason = TextAreaField('Reason', validators=[Length(max=32)])
+    is_anonymous = BooleanField('is_anonymous', default=False)
     submit = SubmitField('Sign this Petition')

@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
         signUpButton.disabled = percentage < 75;
     });
 
+    // Define the password criteria using REGEX
     function updatePasswordCriteria(password) {
         const criteria = [
             { id: 'criteriaLength', pattern: /.{8,}/ },

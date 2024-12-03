@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('description').value = descriptionValue;
 
         // Utilising SweetAlert2
-        if (!descriptionValue) {
+        if (descriptionValue.length < 3) {
             Swal.fire({
                 title: 'Error!',
                 text: 'Please provide a description for your petition.',

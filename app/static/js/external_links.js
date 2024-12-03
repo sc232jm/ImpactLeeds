@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Attach a click listener to the link object and prevent the default behaviour
         link.addEventListener('click', function (event) {
             event.preventDefault();
-            // Utilsiing SweetAlert2
+            // Utilising SweetAlert2
             Swal.fire({
                 title: 'Redirecting to an external site',
                 text: `You are being redirected to: ${link.href}. Do you want to proceed?`,

@@ -6,6 +6,7 @@
         <i class="fas fa-user-circle fa-5x"></i>
         <h2>{{ user.username }}</h2>
         {% if user_about_me %}
+        <!-- Utilising: https://stackoverflow.com/questions/12341496/jinja-2-safe-keyword to overcome text rendering issues -->
         <div class="mt-3">
             {{ user_about_me | safe }}
         </div>

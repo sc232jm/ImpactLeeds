@@ -243,33 +243,41 @@ def sign_petition(petition_id):
     """
     petition = Petition.query.get(petition_id)
 
-    # Check if the user has already signed the petition
-    already_signed = Signature.query.filter_by(petition_id=petition_id, author_id=current_user.id).first() is not None
-    can_sign = not already_signed and 'Victory' not in petition.status_badges and 'Closed' not in petition.status_badges
+    form = SignPetitionForm(obj=petition)
 
-    if not can_sign:
-        flash('You are unable to sign this petition', 'info')
-        # Send JSON response back to invalid POST request
-        return jsonify({'success': False, 'message': 'You are unable to sign this petition.', 'can_sign': True}), 200
+    if form.validate_on_submit():
+        # Check if the user has already signed the petition
+        already_signed = Signature.query.filter_by(petition_id=petition_id, author_id=current_user.id).first() is not None
+        can_sign = not already_signed and 'Victory' not in petition.status_badges and 'Closed' not in petition.status_badges
 
-    # Filter the signature reasoning utilising: https://pypi.org/project/alt-profanity-check/ ML model
-    reason_text = request.form['reason']
-    profanity_level = predict([reason_text])[0]
-    reason_flagged = profanity_level > 1.0
+        if not can_sign:
+            flash('You are unable to sign this petition', 'info')
+            # Send JSON response back to invalid POST request
+            return jsonify({'success': False, 'message': 'You are unable to sign this petition.', 'can_sign': True}), 200
 
-    is_anonymous = request.form['is_anonymous'] == "1"
+        # Filter the signature reasoning utilising: https://pypi.org/project/alt-profanity-check/ ML model
+        reason_text = request.form['reason']
+        profanity_level = predict([reason_text])[0]
+        reason_flagged = profanity_level > 1.0
 
-    new_signature = Signature(
-        author_id=current_user.id,
-        petition_id=petition_id,
-        reason=reason_text,
-        is_anonymous=is_anonymous,
-        flagged=reason_flagged
-    )
-    db.session.add(new_signature)
-    db.session.commit()
+        is_anonymous = request.form['is_anonymous'] == "1"
 
-    return redirect(request.referrer)
+        new_signature = Signature(
+            author_id=current_user.id,
+            petition_id=petition_id,
+            reason=reason_text,
+            is_anonymous=is_anonymous,
+            flagged=reason_flagged
+        )
+        db.session.add(new_signature)
+        db.session.commit()
+
+        flash('Petition created successfully!', 'success')
+    elif form.errors:
+        for _, errors in form.errors.items():
+            for error in errors:
+                print(error)
+    return redirect(url_for("petition_detail", petition_id=petition.id))
 
 
 @app.route('/signature/<int:signature_id>/like', methods=['POST'])
