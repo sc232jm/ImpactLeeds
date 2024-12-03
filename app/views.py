@@ -13,6 +13,11 @@ from profanity_check import predict
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@login_manager.unauthorized_handler
+def handle_needs_login():
+    flash('Please login to access this page', 'error')
+    return redirect(url_for('login', next=request.full_path))
+
 # Additional security layer to prevent unauthorised access
 @app.route('/lockdown', methods=['GET', 'POST'])
 def lockdown():
@@ -277,7 +282,7 @@ def sign_petition(petition_id):
         for _, errors in form.errors.items():
             for error in errors:
                 print(error)
-    return redirect(url_for("petition_detail", petition_id=petition.id))
+    return redirect(url_for('petition_detail', petition_id=petition.id))
 
 
 @app.route('/signature/<int:signature_id>/like', methods=['POST'])
@@ -378,13 +383,15 @@ def login():
         if user and user.check_password(form.password.data):
             login_user(user)
             flash('TOAST|Login Successful!', 'success')
-            return redirect(url_for('home'))
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     elif request.method == 'POST':
         # Send JSON response back to invalid POST request
         return jsonify({'success': False, 'message': 'Invalid login body'}), 400
 
+    # Render the login template for GET requests or unsuccessful form validation
     return render_template('login.html', form=form)
 
 

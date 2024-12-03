@@ -10,11 +10,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const simplemde = new SimpleMDE({element: document.getElementById("description"), status: [{
         className: "chars",
         defaultValue: function(el) {
-            el.innerHTML = "0 / " + 1024
+            el.innerHTML = "0 / " + 1024;
          },
         onUpdate: function(el) {
             el.innerHTML = simplemde.value().length + " / "+ 1024;
-            limit_characters()
+            limit_characters();
         }
     }]});
 
@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
             petitionData[key] = value;
         });
         petitionData['category'] = selectedCategory;
-        
+
         generateMockupCard(petitionData);
         document.getElementById('submitForm').classList.remove('d-none');
     });
