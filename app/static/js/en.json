@@ -1,5 +1,7 @@
 {
   "_comment": "Obtained from: https://cookieconsent.orestbida.com/",
+  "_author": "orestbida",
+
   "consentModal": {
     "label": "Cookie Consent",
     "title": "Hello traveller, it's cookie time!",

@@ -1,8 +1,8 @@
 /*jshint esversion: 6 */
 
 
-/* Utilising nprogress */
-/* Documentation obtained from: https://github.com/rstacruz/nprogress?tab=readme-ov-file#basic-usage */
+/* Utilising nprogress to improve visuals */
+/* Code obtained from: https://github.com/rstacruz/nprogress?tab=readme-ov-file#basic-usage */
 document.addEventListener('DOMContentLoaded', function () {
     NProgress.start();
 });

@@ -8,12 +8,12 @@ from app.forms import SignupForm, LoginForm, CreatePetitionForm, SignPetitionFor
 import markdown
 from profanity_check import predict
 
-
+# Flask Login: https://flask-login.readthedocs.io/en/latest/#how-it-works
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
+# Additional security layer to prevent unauthorised access
 @app.route('/lockdown', methods=['GET', 'POST'])
 def lockdown():
     if request.method == 'POST':
@@ -32,8 +32,6 @@ def lockdown():
 def check_lockdown():
     if app.config.get('LOCKDOWN_ENABLED') and 'lockdown_passed' not in session and request.endpoint not in ['lockdown', 'static']:
         return redirect(url_for('lockdown'))
-
-
 
 @app.route('/', methods=['GET'])
 def home():
@@ -94,6 +92,7 @@ def settings():
         flash('TOAST|Settings updated successfully!', 'success')
         return redirect(url_for('user_profile', username=current_user.username))
     elif request.method == 'POST':
+        # Send JSON response back to invalid POST request
         return jsonify({'success': False, 'message': 'Invalid edit body'}), 400
 
     return render_template('settings.html', form=form)
@@ -177,11 +176,13 @@ def delete_petition():
     petition_id = data.get('petition_id')
 
     if petition_id is None:
+        # Send JSON response back to invalid POST request
         return jsonify({'error': 'Invalid petition ID'}), 400
 
     petition = Petition.query.get_or_404(petition_id)
 
     if petition.author_id != current_user.id:
+        # Send JSON response back to invalid POST request
         return jsonify({'error': 'You do not have permission to delete this petition.'}), 403
 
     # Delete all signatures associated with the petition
@@ -189,6 +190,7 @@ def delete_petition():
     db.session.delete(petition)
     db.session.commit()
 
+    # Send JSON response back to AJAX request
     return jsonify({'message': 'Petition deleted successfully.'}), 200
 
 
@@ -225,6 +227,7 @@ def edit_petition(petition_id):
         flash('Petition updated successfully.', 'success')
         return redirect(url_for('petition_detail', petition_id=petition.id))
     elif request.method == 'POST':
+        # Send JSON response back to invalid POST request
         return jsonify({'success': False, 'message': 'Invalid edit body'}), 400
 
     return render_template('edit.html', form=form, petition=petition)
@@ -246,11 +249,13 @@ def sign_petition(petition_id):
 
     if not can_sign:
         flash('You are unable to sign this petition', 'info')
+        # Send JSON response back to invalid POST request
         return jsonify({'success': False, 'message': 'You are unable to sign this petition.', 'can_sign': True}), 200
 
+    # Filter the signature reasoning utilising: https://pypi.org/project/alt-profanity-check/ ML model
     reason_text = request.form['reason']
     profanity_level = predict([reason_text])[0]
-    reason_flagged = profanity_level > 0.9
+    reason_flagged = profanity_level > 1.0
 
     is_anonymous = request.form['is_anonymous'] == "1"
 
@@ -284,6 +289,7 @@ def like_signature(signature_id):
 
     like_count = Like.query.filter_by(signature_id=signature_id).count()
 
+    # Send JSON response back to AJAX request
     return jsonify({'success': True, 'like_count': like_count, 'message': message})
 
 
@@ -297,13 +303,13 @@ def create_petition():
             title = form.title.data
             description = form.description.data
             tag_line = form.tag_line.data
+            # Image from University of Leeds Website: https://www.leeds.ac.uk/around-campus
             image_url = form.image_url.data or 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJTcLeoDwmVmpJHNs8Ni9-4MHDhcFDQ-yr-g&s'
             status_badges = ['Waiting', category]
 
             new_petition = Petition(
                 title=title,
                 tag_line=tag_line,
-                # store as md
                 description=description,
                 image_url=image_url,
                 author_id=current_user.id,
@@ -318,6 +324,7 @@ def create_petition():
             flash(f'An error occurred: {str(e)}', 'danger')
             return redirect(url_for('create_petition'))
     elif request.method == 'POST':
+        # Send JSON response back to invalid POST request
         return jsonify({'success': False, 'message': 'Invalid petition body'}), 400
 
     return render_template('create.html', form=form)
@@ -349,7 +356,7 @@ def signup():
         flash('TOAST|Signup Successful!', 'success')
         return redirect(url_for('home'))
     elif form.errors:
-        for field, errors in form.errors.items():
+        for _, errors in form.errors.items():
             for error in errors:
                 flash(error, 'danger')
     return render_template('signup.html', form=form)
@@ -367,6 +374,7 @@ def login():
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     elif request.method == 'POST':
+        # Send JSON response back to invalid POST request
         return jsonify({'success': False, 'message': 'Invalid login body'}), 400
 
     return render_template('login.html', form=form)
@@ -395,9 +403,11 @@ def search_results():
 
     petitions = Petition.query.all()
 
+    # Wrap the keyword in the html mark tags
     def highlight(text, keyword):
         return text.lower().replace(keyword, f'<mark>{keyword}</mark>')
 
+    # Sort the results into an array
     results = [
         petition
         for petition in petitions if query in petition.title.lower() or

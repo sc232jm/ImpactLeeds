@@ -1,10 +1,14 @@
 /*jshint esversion: 6 */
 document.addEventListener('DOMContentLoaded', function () {
+    // Find all links on the current page
+    // https://stackoverflow.com/questions/56782843/problem-with-document-queryselectorall-ahref-is-not-a-valid-selector
     const externalLinks = document.querySelectorAll('a[href^="http"]');
 
     externalLinks.forEach(function (link) {
+        // Attach a click listener to the link object and prevent the default behaviour
         link.addEventListener('click', function (event) {
             event.preventDefault();
+            // Utilsiing SweetAlert2
             Swal.fire({
                 title: 'Redirecting to an external site',
                 text: `You are being redirected to: ${link.href}. Do you want to proceed?`,
@@ -15,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 confirmButtonText: 'Yes, proceed!',
                 cancelButtonText: 'Cancel'
             }).then((result) => {
+                // Redirect the user if they agree to proceed
                 if (result.isConfirmed) {
                     window.location.href = link.href;
                 }

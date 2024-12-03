@@ -6,9 +6,28 @@ document.addEventListener("DOMContentLoaded", function () {
     let selectedCategory = null;
     const progressBar = document.getElementById('progressBar');
     const steps = document.querySelectorAll('.step');
-    const simplemde = new SimpleMDE({element: document.getElementById("description")});
+    /* Length limiting: https://github.com/sparksuite/simplemde-markdown-editor/issues/584#issuecomment-346965224 */
+    const simplemde = new SimpleMDE({element: document.getElementById("description"), status: [{
+        className: "chars",
+        defaultValue: function(el) {
+            el.innerHTML = "0 / " + 1024
+         },
+        onUpdate: function(el) {
+            el.innerHTML = simplemde.value().length + " / "+ 1024;
+            limit_characters()
+        }
+    }]});
 
+    function limit_characters() {
+        document.getElementById('submitForm').classList.add('d-none');
+        if(simplemde.value().length > 1024) {
+            document.getElementById("showMockup").disabled = true
+        } else {
+            document.getElementById("showMockup").disabled = false
+        }
+    }
 
+    // Toggle the visibility of each step
     function showStep(step) {
         steps.forEach((stepElement, index) => {
             if (index + 1 === step) {
@@ -19,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Toggle the selection state of each button (ensuring only one can be selected)
     function updateButtonState() {
         document.querySelectorAll('.category-option button').forEach(btn => {
             if (btn.getAttribute('data-category') === selectedCategory) {
@@ -29,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Render the mockup card of the petition with the specified data
     function generateMockupCard(data) {
         const mockupContainer = document.getElementById('mockupContainer');
 
@@ -59,53 +80,55 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
     }
 
-
+    // / Store the category of the last selected button
     document.querySelectorAll('.category-option button').forEach(button => {
         button.addEventListener('click', function () {
             selectedCategory = this.getAttribute('data-category');
-            document.getElementById('category').value = selectedCategory;  // Set the hidden input value
+            document.getElementById('category').value = selectedCategory;
             updateButtonState();
             document.getElementById('nextStep1').disabled = false;
         });
     });
 
+    // Show step 2 and adjust the progress bars percentage
     document.getElementById('nextStep1').addEventListener('click', function () {
         showStep(2);
         progressBar.style.width = '33%';
-        progressBar.setAttribute('aria-valuenow', '33');
     });
 
+    // Ensure the title input has content before allowing them to progress to the next step
     document.getElementById('title').addEventListener('input', function () {
-        document.getElementById('nextStep2').disabled = this.value.trim() === '';
+        document.getElementById('nextStep2').disabled = this.value.trim().length < 3;
     });
 
+    // Show step 3 and adjust the progress bars percentage
     document.getElementById('nextStep2').addEventListener('click', function () {
         showStep(3);
         progressBar.style.width = '66%';
-        progressBar.setAttribute('aria-valuenow', '66');
     });
 
+    // Show step 1 and adjust the progress bar percentage
     document.getElementById('prevStep2').addEventListener('click', function () {
         showStep(1);
         progressBar.style.width = '0%';
-        progressBar.setAttribute('aria-valuenow', '0');
         updateButtonState();
     });
 
+    // Show step 2 and adjust the progress bar percentage
     document.getElementById('prevStep3').addEventListener('click', function () {
         showStep(2);
         progressBar.style.width = '33%';
         document.getElementById('submitForm').classList.add('d-none');
         document.getElementById('mockupContainer').innerHTML = "";
-        progressBar.setAttribute('aria-valuenow', '33');
     });
 
     // Handle mockup generation
     document.getElementById('showMockup').addEventListener('click', function (event) {
-
+        // Getting the raw description from simplemde (The markdown editor)
         const descriptionValue = simplemde.value();
         document.getElementById('description').value = descriptionValue;
 
+        // Utilising SweetAlert2
         if (!descriptionValue) {
             Swal.fire({
                 title: 'Error!',
@@ -115,13 +138,15 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        // Generate a JS form object and store it on the petitionForm object 
+        // https://developer.mozilla.org/en-US/docs/Web/API/FormData/FormData
         const formData = new FormData(document.getElementById('createPetitionForm'));
         let petitionData = {};
         formData.forEach((value, key) => {
             petitionData[key] = value;
         });
         petitionData['category'] = selectedCategory;
-
+        
         generateMockupCard(petitionData);
         document.getElementById('submitForm').classList.remove('d-none');
     });
@@ -130,5 +155,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('tag_line').addEventListener('input', function () {
         document.getElementById('submitForm').classList.add('d-none');
     });
+
 });
 
