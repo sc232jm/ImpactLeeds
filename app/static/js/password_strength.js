@@ -1,73 +1,57 @@
 /*jshint esversion: 6 */
 document.addEventListener('DOMContentLoaded', function () {
     const passwordInput = document.getElementById('password');
-    const passwordStrengthBar = document.getElementById('passwordStrengthBar');
-    const passwordStrengthText = document.getElementById('passwordStrengthText');
+    const passwordStrengthFill = document.getElementById('passwordStrengthFill');
     const signUpButton = document.getElementById('signUpButton');
 
     passwordInput.addEventListener('input', function () {
-        const strength = getPasswordStrength(passwordInput.value);
-        passwordStrengthText.textContent = `Password Strength: ${strength.label}`;
-        updatePasswordStrengthBar(strength.score);
-        updatePasswordStrengthColor(strength.label);
-        signUpButton.disabled = (strength.label === 'Weak');
+        const password = passwordInput.value;
+        const percentage = updatePasswordCriteria(password);
+
+        // Update the bar's width and color
+        updatePasswordStrengthBar(percentage);
+
+        // Enable/Disable the button
+        signUpButton.disabled = percentage < 75;
     });
 
-    //https://stackoverflow.com/questions/50547523/how-can-i-use-javascript-to-test-for-password-strength-in-a-way-that-returns-the
-    function getPasswordStrength(password) {
-        let score = 0;
-        let strength = 'Weak';
-
-        const patterns = [
-            /[a-z]/,
-            /[A-Z]/,
-            /[0-9]/,
-            /[^a-zA-Z0-9]/
+    function updatePasswordCriteria(password) {
+        const criteria = [
+            { id: 'criteriaLength', pattern: /.{8,}/ },
+            { id: 'criteriaLowercase', pattern: /[a-z]/ },
+            { id: 'criteriaUppercase', pattern: /[A-Z]/ },
+            { id: 'criteriaNumber', pattern: /[0-9]/ },
+            { id: 'criteriaSpecial', pattern: /[^a-zA-Z0-9]/ },
         ];
 
-        const matches = patterns.filter(pattern => pattern.test(password)).length;
+        let matches = 0;
 
-        if (password.length >= 8) {
-            score = matches * 25;
-            switch (matches) {
-                case 4:
-                    strength = 'Very Strong';
-                    break;
-                case 3:
-                    strength = 'Strong';
-                    break;
-                case 2:
-                    strength = 'Medium';
-                    break;
-                default:
-                    strength = 'Weak';
-                    break;
+        criteria.forEach(criterion => {
+            const element = document.getElementById(criterion.id);
+            if (criterion.pattern.test(password)) {
+                element.style.display = 'none'; // Hide satisfied requirement
+                matches++;
+            } else {
+                element.style.display = 'block'; // Show unsatisfied requirement
             }
-        }
-        return {score, label: strength};
+        });
+
+        // Calculate percentage based on the number of satisfied criteria
+        return (matches / criteria.length) * 100;
     }
 
-    function updatePasswordStrengthBar(score) {
-        passwordStrengthBar.style.width = `${score}%`;
-    }
+    function updatePasswordStrengthBar(percentage) {
+        passwordStrengthFill.style.width = `${percentage}%`;
 
-    function updatePasswordStrengthColor(strength) {
-        switch (strength) {
-            case 'Very Strong':
-                passwordStrengthBar.classList.add('bg-success');
-                passwordStrengthBar.classList.remove('bg-warning', 'bg-danger');
-                break;
-            case 'Strong':
-                passwordStrengthBar.classList.add('bg-info');
-                passwordStrengthBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
-                break;
-            case 'Medium':
-                passwordStrengthBar.classList.add('bg-warning');
-                passwordStrengthBar.classList.remove('bg-success', 'bg-info', 'bg-danger');
-                break;
-            default:
-                passwordStrengthBar.classList.add('bg-danger');
-                passwordStrengthBar.classList.remove('bg-success', 'bg-info', 'bg-warning');
+        // Change the bar's color based on strength
+        if (percentage === 100) {
+            passwordStrengthFill.style.backgroundColor = '#28a745'; // Green
+        } else if (percentage >= 80) {
+            passwordStrengthFill.style.backgroundColor = '#ffc107'; // Yellow
+        } else if (percentage >= 60) {
+            passwordStrengthFill.style.backgroundColor = '#fd7e14'; // Orange
+        } else {
+            passwordStrengthFill.style.backgroundColor = '#dc3545'; // Red
         }
     }
 });

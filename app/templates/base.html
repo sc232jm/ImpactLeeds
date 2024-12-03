@@ -13,7 +13,7 @@
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
 <body>
-
+<!-- Derived from https://getbootstrap.com/docs/4.0/components/navbar/ -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
     <a class="navbar-brand" href="{{ url_for('home') }}">Leeds Petitions</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -34,7 +34,14 @@
         </ul>
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('search') }}"><i class="fas fa-search"></i></a>
+                <a class="nav-link" href="{{ url_for('search') }}">
+                <span class="d-none d-lg-inline">
+                    <i class="fas fa-search" aria-label="search"></i>
+                </span>
+                    <span class="d-inline d-lg-none" aria-label="search">
+                    Search
+                </span>
+                </a>
             </li>
             {% if current_user.is_authenticated %}
             <li class="nav-item dropdown">
@@ -73,157 +80,27 @@
     </div>
 </footer>
 
-<!-- Flash Messages -->
-<script id="flash-messages" type="application/json">
-    {{
-        get_flashed_messages(with_categories=true)
-        |
-        tojson
-    }}
-</script>
 <script src="https://cdn.jsdelivr.net/gh/orestbida/iframemanager@1.2.5/dist/iframemanager.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.umd.js"></script>
-<script src="{{ url_for('static', filename='js/cookies.js') }}"></script>
-<script src="{{ url_for('static', filename='js/flash_messages.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/nprogress/nprogress.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/nprogress/nprogress.js"></script>
 
-<script>
-    // https://www.npmjs.com/package/nprogress
-    // Initialize NProgress on page load
-    document.addEventListener('DOMContentLoaded', function () {
-        NProgress.start();
-    });
 
-    // Stop NProgress when window finishes loading
-    window.addEventListener('load', function () {
-        NProgress.done();
-    });
+<script src="{{ url_for('static', filename='js/cookies.js') }}"></script>
+<script src="{{ url_for('static', filename='js/flash_messages.js') }}"></script>
+<script src="{{ url_for('static', filename='js/nprogress.js') }}"></script>
+<script src="{{ url_for('static', filename='js/external_links.js') }}"></script>
 
-    // Start NProgress on AJAX request
-    $(document).ajaxStart(function () {
-        NProgress.start();
-    });
+<!-- Derived from: https://flask.palletsprojects.com/en/stable/patterns/flashing/#flashing-with-categories -->
+<script id="flash-messages" type="application/json"> {{
+    get_flashed_messages(with_categories=true)
+    |
+    tojson
+}} </script>
 
-    // Stop NProgress on AJAX request completion
-    $(document).ajaxComplete(function () {
-        NProgress.done();
-    });
-
-    // Initialize CookieConsent and IframeManager
-    window.addEventListener('load', function () {
-        const im = iframemanager();
-        im.run({
-            onChange: ({changedServices, eventSource}) => {
-                if (eventSource.type === 'click') {
-                    const servicesToAccept = [
-                        ...CookieConsent.getUserPreferences().acceptedServices['analytics'],
-                        ...changedServices,
-                    ];
-
-                    CookieConsent.acceptService(servicesToAccept, 'analytics');
-                }
-            },
-
-            currLang: 'en',
-
-            services: {
-                youtube: {
-                    embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}',
-                    thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
-
-                    iframe: {
-                        allow:
-                            'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen;',
-                    },
-
-                    languages: {
-                        en: {
-                            notice:
-                                'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://www.youtube.com/t/terms" target="_blank">terms and conditions</a> of youtube.com.',
-                            loadAllBtn: 'Accept and Load',
-                        },
-                    },
-                },
-
-                vimeo: {
-                    embedUrl: 'https://player.vimeo.com/video/{data-id}',
-                    iframe: {
-                        allow: 'fullscreen; picture-in-picture;',
-                    },
-
-                    thumbnailUrl: async (dataId, setThumbnail) => {
-                        const url = `https://vimeo.com/api/v2/video/${dataId}.json`;
-                        const response = await (await fetch(url)).json();
-                        const thumbnailUrl = response[0]?.thumbnail_large;
-                        thumbnailUrl && setThumbnail(thumbnailUrl);
-                    },
-
-                    languages: {
-                        en: {
-                            notice:
-                                'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://vimeo.com/terms" target="_blank">terms and conditions</a> of vimeo.com.',
-                            loadBtn: 'Load once',
-                            loadAllBtn: "Don't ask again",
-                        },
-                    },
-                },
-            },
-        });
-
-        CookieConsent.run({
-            guiOptions: {
-                consentModal: {
-                    layout: 'box inline',
-                    position: 'bottom left',
-                    equalWeightButtons: true,
-                    flipButtons: false,
-                },
-                preferencesModal: {
-                    layout: 'box',
-                    equalWeightButtons: true,
-                    flipButtons: false,
-                },
-            },
-
-            categories: {
-                necessary: {
-                    readOnly: true,
-                    enabled: true,
-                },
-
-                analytics: {
-                    services: {
-                        youtube: {
-                            label: 'Youtube Embed',
-                            onAccept: () => im.acceptService('youtube'),
-                            onReject: () => im.rejectService('youtube'),
-                        },
-                        vimeo: {
-                            label: 'Vimeo Embed',
-                            onAccept: () => im.acceptService('vimeo'),
-                            onReject: () => im.rejectService('vimeo'),
-                        },
-                    },
-                },
-
-                ads: {},
-            },
-
-            language: {
-                default: 'en',
-
-                translations: {
-                    en: '/static/js/en.json',
-                },
-            },
-        });
-    });
-</script>
 
 </body>
 </html>

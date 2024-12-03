@@ -1,8 +1,8 @@
 """Initial Migration
 
-Revision ID: 25635ea6fc02
+Revision ID: c5840eb4889b
 Revises: 
-Create Date: 2024-11-21 19:55:32.501900
+Create Date: 2024-12-02 20:52:45.470660
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '25635ea6fc02'
+revision = 'c5840eb4889b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -36,7 +36,7 @@ def upgrade():
     op.create_table('petition',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=128), nullable=False),
-    sa.Column('tag_line', sa.String(length=256), nullable=True),
+    sa.Column('tag_line', sa.String(length=32), nullable=True),
     sa.Column('description', sa.String(length=4096), nullable=False),
     sa.Column('author_id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
@@ -52,6 +52,7 @@ def upgrade():
     sa.Column('reason', sa.String(length=512), nullable=True),
     sa.Column('is_anonymous', sa.Boolean(), nullable=True),
     sa.Column('signed_at', sa.DateTime(), nullable=True),
+    sa.Column('flagged', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['author_id'], ['user.id'], ),
     sa.ForeignKeyConstraint(['petition_id'], ['petition.id'], ),
     sa.PrimaryKeyConstraint('id')

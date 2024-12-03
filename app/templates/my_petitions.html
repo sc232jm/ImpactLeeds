@@ -35,6 +35,7 @@
             e.preventDefault();
             const petitionId = this.getAttribute('data-id');
 
+            // Derived from: https://sweetalert2.github.io/#ajax-request
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",

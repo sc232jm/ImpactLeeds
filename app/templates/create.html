@@ -6,14 +6,14 @@
         {{ form.hidden_tag() }}
         <!-- Progress Bar -->
         <div class="progress mb-4">
-            <div id="progressStep" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0"
+            <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0"
                  aria-valuemin="0" aria-valuemax="100"></div>
         </div>
 
         <!-- Step 1: Select Category -->
         <div id="step1" class="step text-center">
             <h3>Select a Category</h3>
-            <input type="hidden" id="category" name="category">  <!-- Hidden category field -->
+            <input type="hidden" id="category" name="category">
             <div class="d-flex justify-content-around mt-4">
                 <div class="category-option text-center">
                     <i class="fas fa-book fa-3x mb-2"></i>
@@ -38,7 +38,6 @@
         <div id="step2" class="step d-none">
             <h3>Name Your Petition</h3>
             <div class="form-group mt-4">
-                <label for="title">Petition Title</label>
                 {{ form.title(class="form-control") }}
                 <small class="form-text text-muted">Provide a clear and concise title for your petition.</small>
             </div>
@@ -52,16 +51,17 @@
         <div id="step3" class="step d-none">
             <h3>Describe Your Petition</h3>
             <div class="form-group mt-4">
-                <label for="description">Description</label>
+                <label>Description</label>
                 {{ form.description(class="form-control markdown-editor") }}
                 <small class="form-text text-muted">Use markdown to format your description.</small>
             </div>
             <div class="form-group mt-4">
-                <label for="tag_line">Tag Line</label>
-                {{ form.tag_line(class="form-control") }}
+                <label>Tag Line</label>
+                {{ form.tag_line(class="form-control", id="tag_line") }}
+                <small class="form-text text-muted">Provide a tag line that summarises your petition.</small>
             </div>
             <div class="form-group mt-4">
-                <label for="image_url">Image URL</label>
+                <label>Image URL</label>
                 {{ form.image_url(class="form-control") }}
                 <small class="form-text text-muted">Provide a URL for an image to associate with your petition.</small>
             </div>
@@ -77,5 +77,5 @@
     <div id="mockupContainer" class="mt-5"></div>
 </div>
 
-<script src="{{ url_for('static', filename='js/create.js') }}"></script>
+<script src="{{ url_for('static', filename='js/create_petition.js') }}"></script>
 {% endblock %}

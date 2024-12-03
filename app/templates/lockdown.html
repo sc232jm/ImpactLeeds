@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2><i class="fa fa-exclamation-triangle text-warning"></i> Additional Security Check</h2>
+        <form method="POST" action="{{ url_for('lockdown') }}">
+            <div class="form-group">
+                <label for="lockdownKey">Enter Security Key:</label>
+                <input type="password" class="form-control" id="lockdownKey" name="lockdown_key" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

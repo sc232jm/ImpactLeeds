@@ -94,8 +94,6 @@ footer {
     display: none;
 }
 
-
-
 /* Change the progress bar color if needed */
 #nprogress .bar {
     background: #29d; /* Adjust the color as desired */
@@ -185,3 +183,28 @@ footer {
     margin-left: 10px;
 }
 
+
+/* Bar Container and Fill */
+#passwordStrengthBar {
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: #e0e0e0;
+}
+
+#passwordStrengthFill {
+    transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+/* Criteria List */
+.text-danger {
+    color: #dc3545;
+}
+
+.text-success {
+    color: #28a745;
+}
+
+ul#passwordCriteria {
+    margin-top: 10px;
+    padding-left: 20px;
+}

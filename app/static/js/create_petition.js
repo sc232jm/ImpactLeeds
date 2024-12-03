@@ -1,11 +1,13 @@
-/* static/js/create.js */
+/* static/js/create_petition.js */
+
 /*jshint esversion: 6 */
+
 document.addEventListener("DOMContentLoaded", function () {
-    let currentStep = 1;
     let selectedCategory = null;
-    const progressBar = document.getElementById('progressStep');
+    const progressBar = document.getElementById('progressBar');
     const steps = document.querySelectorAll('.step');
     const simplemde = new SimpleMDE({element: document.getElementById("description")});
+
 
     function showStep(step) {
         steps.forEach((stepElement, index) => {
@@ -29,6 +31,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function generateMockupCard(data) {
         const mockupContainer = document.getElementById('mockupContainer');
+
+        // Was easier to override the innerHTML that use the card component
         mockupContainer.innerHTML = `
             <div class="col-md-12 mb-4">
                 <div class="card text-decoration-none text-dark">
@@ -39,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <span class="badge badge-warning">Waiting</span>
                                 <span class="badge badge-info">${data.category}</span>
                                 <h5 class="card-title mt-2">${data.title}</h5>
-                                <div class="card-text markdown-content">${simplemde.options.previewRender(data.description)}</div>
+                                <div class="card-text">${data.tag_line}</div>
                             </div>
                             <div class="card-footer d-flex justify-content-between">
                                 <small class="text-muted">By Anonymous</small>
@@ -54,6 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
         `;
     }
+
 
     document.querySelectorAll('.category-option button').forEach(button => {
         button.addEventListener('click', function () {
@@ -97,8 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Handle mockup generation
     document.getElementById('showMockup').addEventListener('click', function (event) {
-        event.preventDefault();
-        simplemde.codemirror.focus();
+
         const descriptionValue = simplemde.value();
         document.getElementById('description').value = descriptionValue;
 
@@ -123,7 +127,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Re-render the preview if the description is updated and hide submit button
-    simplemde.codemirror.on("change", function () {
-        $('#submitForm').addClass('d-none');
+    document.getElementById('tag_line').addEventListener('input', function () {
+        document.getElementById('submitForm').classList.add('d-none');
     });
 });
+

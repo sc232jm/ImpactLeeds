@@ -1,7 +1,10 @@
 /*jshint esversion: 6 */
+
+/* Utilising SweetAlert2 */
+/* Documentation obtained from: https://sweetalert2.github.io/#usage */
+
 function display(flashMessages) {
     flashMessages.forEach(message => {
-        console.log(message)
         const [category, text] = message;
         if (category === 'success') {
             if (text.includes('TOAST')) {
@@ -17,7 +20,7 @@ function display(flashMessages) {
                     }
                     });
                     Toast.fire({
-                    icon: "success",
+                    icon: text.includes("ERRTOAST") ? "error" : "success",
                     title: text.split("|")[1]
                     });
             } else {
@@ -43,5 +46,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const flashMessages = JSON.parse(document.getElementById('flash-messages').textContent);
     if (flashMessages.length > 0) {
         display(flashMessages);
-    };
+    }
 });

@@ -3,6 +3,10 @@ from wtforms import StringField, PasswordField, SubmitField, TextAreaField, Hidd
 from wtforms.fields.choices import SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
 
+""" 
+SubmitFields added to mitigate headless POST requests
+https://wtforms.readthedocs.io/en/2.3.x/_modules/wtforms/fields/simple/#SubmitField
+"""
 
 class SignupForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -34,7 +38,7 @@ class EditPetitionForm(FlaskForm):
     tag_line = StringField('Tag Line', validators=[DataRequired()])
     image_url = StringField('Image URL')
     status = SelectField('Status', choices=[('Closed', 'Closed'), ('Victory', 'Victory'),
-                                                ('Waiting', 'Waiting')], validators=[DataRequired()])
+                                            ('Waiting', 'Waiting')], validators=[DataRequired()])
     submit = SubmitField('Update Petition')
 
 

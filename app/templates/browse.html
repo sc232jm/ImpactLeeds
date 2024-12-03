@@ -4,12 +4,13 @@
 <div class="container mt-4">
     <h2 class="mb-4">Browse Petitions</h2>
     <div class="btn-group mb-4" role="group" aria-label="Filter petitions">
-        <a href="{{ url_for('browse') }}" class="btn btn-primary" style="margin-right: 10px;">All</a>
+        <a href="{{ url_for('browse') }}" class="btn btn-primary">All</a>
         <a href="{{ url_for('browse', filter='popular') }}" class="btn btn-primary"
-           style="margin-right: 10px;">Popular</a>
-        <a href="{{ url_for('browse', filter='latest') }}" class="btn btn-secondary"
-           style="margin-right: 10px;">Latest</a>
-        <a href="{{ url_for('browse', filter='victories') }}" class="btn btn-success">Victories</a>
+        >Popular</a>
+        <a href="{{ url_for('browse', filter='latest') }}" class="btn btn-primary"
+           style="background-color: #6c757d">Latest</a>
+        <a href="{{ url_for('browse', filter='victories') }}" class="btn btn-primary"
+           style="background-color: purple">Victories</a>
     </div>
     <div class="row" id="petitions-container">
         {% for petition in petitions %}

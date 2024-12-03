@@ -202,8 +202,8 @@
                         const heartIcon = likeButton.querySelector('.fa-heart');
                         heartIcon.classList.toggle('fas');
                         heartIcon.classList.toggle('far');
-                        
-                        message = data.message == 'added' ? 'TOAST|Added Like' : 'TOAST|Removed Like'
+
+                        let message = data.message === 'added' ? 'TOAST|Added Like' : 'TOAST|Removed Like'
                         display([['success', message]])
                     }
                 },

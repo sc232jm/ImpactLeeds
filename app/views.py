@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, flash, jsonify
+from flask import render_template, redirect, url_for, request, flash, jsonify, session
 from flask_login import login_user, logout_user, login_required, current_user
 
 from app import app, db, login_manager
@@ -14,28 +14,55 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-@app.route('/')
+@app.route('/lockdown', methods=['GET', 'POST'])
+def lockdown():
+    if request.method == 'POST':
+        lockdown_key = request.form.get('lockdown_key')
+        if lockdown_key == app.config.get('SECRET_KEY'):
+            session['lockdown_passed'] = True
+            return redirect(url_for('home'))
+        else:
+            flash('Invalid security key. Please try again.', 'danger')
+            return render_template('lockdown.html')
+
+    return render_template('lockdown.html')
+
+# Lockdown access control
+@app.before_request
+def check_lockdown():
+    if app.config.get('LOCKDOWN_ENABLED') and 'lockdown_passed' not in session and request.endpoint not in ['lockdown', 'static']:
+        return redirect(url_for('lockdown'))
+
+
+
+@app.route('/', methods=['GET'])
 def home():
+    """
+    Renders the home page, providing the top 5 petitions for the carousel.
+    :return: The rendered template
+    """
     petitions = Petition.query.all()
 
-    sorted_petitions = sorted(petitions, key=lambda p: len(p.signatures), reverse=True)
-
-    top_petitions = sorted_petitions[:5]
+    top_petitions = sorted(petitions, key=lambda p: len(p.signatures), reverse=True)[:5]
 
     return render_template('home.html', petitions=top_petitions)
 
 
-@app.route('/browse')
+@app.route('/browse', methods=['GET'])
 def browse():
-    filter = request.args.get('filter', 'all')
+    """
+    Renders the browse petition page. The petition list can be filtered by a paramater
+    :return: The rendered template
+    """
+    category = request.args.get('filter', 'all')
 
-    if filter == 'popular':
+    if category == 'popular':
         petitions = Petition.query.all()
 
         petitions = sorted(petitions, key=lambda p: len(p.signatures), reverse=True)
-    elif filter == 'latest':
+    elif category == 'latest':
         petitions = Petition.query.order_by(Petition.created_at.desc()).all()
-    elif filter == 'victories':
+    elif category == 'victories':
         petitions = Petition.query.filter(Petition.status_badges.contains(['Victory'])).all()
     else:
         petitions = Petition.query.all()
@@ -46,15 +73,18 @@ def browse():
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
+    """
+    Renders the settings page and accepts POST requests to update the user profile
+    :return: The rendered template or success messages
+    """
+    # https://stackoverflow.com/questions/6196622/using-wtforms-populate-obj-method-with-flask-micro-framework
     form = EditSettingsForm(obj=current_user)
 
     if form.validate_on_submit():
-        # Check for duplicate username
         if User.query.filter_by(username=form.username.data).first() and form.username.data != current_user.username:
             flash('Username already taken', 'error')
             return redirect(url_for('settings'))
 
-        # Update user details
         current_user.first_name = form.first_name.data
         current_user.last_name = form.last_name.data
         current_user.username = form.username.data
@@ -63,6 +93,8 @@ def settings():
 
         flash('TOAST|Settings updated successfully!', 'success')
         return redirect(url_for('user_profile', username=current_user.username))
+    elif request.method == 'POST':
+        return jsonify({'success': False, 'message': 'Invalid edit body'}), 400
 
     return render_template('settings.html', form=form)
 
@@ -70,30 +102,38 @@ def settings():
 @app.route('/user/<username>')
 @login_required
 def user_profile(username):
+    """
+    Renders the specified user profile from their username
+    :param username: The username of the user to render
+    :return: The rendered template with the specified user data
+    """
     user = User.query.filter_by(username=username).first_or_404()
     created_petitions = Petition.query.filter_by(author_id=user.id).all()
     signed_petitions = Petition.query.join(Signature).filter(Signature.author_id == user.id).all()
 
-    # Render the about me section in markdown
     user_about_me = markdown.markdown(user.about_me) if user.about_me else None
 
     return render_template('user_profile.html', user=user, created_petitions=created_petitions,
                            signed_petitions=signed_petitions, user_about_me=user_about_me)
 
 
-@app.route('/petition/<int:petition_id>')
+@app.route('/petition/<int:petition_id>', methods=['GET'])
 @login_required
 def petition_detail(petition_id):
+    """
+    Renders the specified petition from the petition id
+    :param petition_id: The id of the petition
+    :return: The rendered template with the specified petition data
+    """
     petition = Petition.query.get_or_404(petition_id)
     form = SignPetitionForm()
 
     sort_by = request.args.get('filter', 'most_recent')
 
     if sort_by == 'most_liked':
-        #MISSING LIKES??
-        signatures = Signature.query.filter_by(petition_id=petition_id).join(Like,
-                                                                             Signature.id == Like.signature_id).group_by(
-            Signature.id).order_by(db.func.count(Like.id).desc()).all()
+        signatures = db.session.query(Signature, db.func.count(Like.id).label('like_count')).filter_by(
+            petition_id=petition_id).outerjoin(Like, Signature.id == Like.signature_id).group_by(Signature.id).order_by(
+            db.func.count(Like.id).desc()).all()
     else:
         signatures = Signature.query.filter_by(petition_id=petition_id).order_by(Signature.signed_at.desc()).all()
 
@@ -118,6 +158,10 @@ def petition_detail(petition_id):
 @app.route('/my_petitions')
 @login_required
 def my_petitions():
+    """
+    Renders the petitions owned by the authed user
+    :return: The rendered template
+    """
     petitions = Petition.query.filter_by(author_id=current_user.id).all()
     return render_template('my_petitions.html', petitions=petitions)
 
@@ -125,6 +169,10 @@ def my_petitions():
 @app.route('/petition/delete', methods=['POST'])
 @login_required
 def delete_petition():
+    """
+    Handles the deletion of a petition from an authed users AJAX request
+    :return: A JSON response of the deletion operation
+    """
     data = request.get_json()
     petition_id = data.get('petition_id')
 
@@ -147,6 +195,11 @@ def delete_petition():
 @app.route('/petition/<int:petition_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_petition(petition_id):
+    """
+    Renders the petition edit page and accepts POST requests to update the specified petition
+    :param petition_id: The id of the petition
+    :return:
+    """
     status_list = ['Closed', 'Waiting', 'Victory']
 
     petition = Petition.query.get_or_404(petition_id)
@@ -171,6 +224,8 @@ def edit_petition(petition_id):
 
         flash('Petition updated successfully.', 'success')
         return redirect(url_for('petition_detail', petition_id=petition.id))
+    elif request.method == 'POST':
+        return jsonify({'success': False, 'message': 'Invalid edit body'}), 400
 
     return render_template('edit.html', form=form, petition=petition)
 
@@ -178,7 +233,12 @@ def edit_petition(petition_id):
 @app.route('/petition/<int:petition_id>/sign', methods=['POST'])
 @login_required
 def sign_petition(petition_id):
-    petition = Petition.query.get_or_404(petition_id)
+    """
+    Handles the signing of a petition from an authed users AJAX request
+    :param petition_id: The id of the petition
+    :return: A JSON response of the signing operation
+    """
+    petition = Petition.query.get(petition_id)
 
     # Check if the user has already signed the petition
     already_signed = Signature.query.filter_by(petition_id=petition_id, author_id=current_user.id).first() is not None
@@ -257,6 +317,8 @@ def create_petition():
         except Exception as e:
             flash(f'An error occurred: {str(e)}', 'danger')
             return redirect(url_for('create_petition'))
+    elif request.method == 'POST':
+        return jsonify({'success': False, 'message': 'Invalid petition body'}), 400
 
     return render_template('create.html', form=form)
 
@@ -304,6 +366,9 @@ def login():
             return redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
+    elif request.method == 'POST':
+        return jsonify({'success': False, 'message': 'Invalid login body'}), 400
+
     return render_template('login.html', form=form)
 
 
@@ -323,6 +388,11 @@ def search():
 @app.route('/search_results', methods=['GET'])
 def search_results():
     query = request.args.get('query', '').lower()
+
+    if len(query) < 3:
+        flash('ERRTOAST|Query must be 3 or more characters!', 'success')
+        return render_template('search.html')
+
     petitions = Petition.query.all()
 
     def highlight(text, keyword):
