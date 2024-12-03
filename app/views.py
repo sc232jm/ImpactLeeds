@@ -8,19 +8,36 @@ from app.forms import SignupForm, LoginForm, CreatePetitionForm, SignPetitionFor
 import markdown
 from profanity_check import predict
 
+
 # Flask Login: https://flask-login.readthedocs.io/en/latest/#how-it-works
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 @login_manager.unauthorized_handler
 def handle_needs_login():
     flash('Please login to access this page', 'error')
     return redirect(url_for('login', next=request.full_path))
 
-# Additional security layer to prevent unauthorised access
+
+@app.before_request
+def check_lockdown():
+    """
+    Checks to see if lockdown is enabled on any endpoint request
+    :return: The rendered template if lockdown is enabled
+    """
+    if (app.config.get('LOCKDOWN_ENABLED') and 'lockdown_passed' not in session
+            and request.endpoint not in ['lockdown', 'static']):
+        return redirect(url_for('lockdown'))
+
+
 @app.route('/lockdown', methods=['GET', 'POST'])
 def lockdown():
+    """
+    Additional security layer to prevent unauthorised access
+    :return: The rendered template
+    """
     if request.method == 'POST':
         lockdown_key = request.form.get('lockdown_key')
         if lockdown_key == app.config.get('SECRET_KEY'):
@@ -32,11 +49,6 @@ def lockdown():
 
     return render_template('lockdown.html')
 
-# Lockdown access control
-@app.before_request
-def check_lockdown():
-    if app.config.get('LOCKDOWN_ENABLED') and 'lockdown_passed' not in session and request.endpoint not in ['lockdown', 'static']:
-        return redirect(url_for('lockdown'))
 
 @app.route('/', methods=['GET'])
 def home():
@@ -54,7 +66,7 @@ def home():
 @app.route('/browse', methods=['GET'])
 def browse():
     """
-    Renders the browse petition page. The petition list can be filtered by a paramater
+    Renders the browse petition page. The petition list can be filtered by a parameter
     :return: The rendered template
     """
     category = request.args.get('filter', 'all')
@@ -252,13 +264,16 @@ def sign_petition(petition_id):
 
     if form.validate_on_submit():
         # Check if the user has already signed the petition
-        already_signed = Signature.query.filter_by(petition_id=petition_id, author_id=current_user.id).first() is not None
-        can_sign = not already_signed and 'Victory' not in petition.status_badges and 'Closed' not in petition.status_badges
+        already_signed = Signature.query.filter_by(petition_id=petition_id,
+                                                   author_id=current_user.id).first() is not None
+        can_sign = (not already_signed and 'Victory' not in petition.status_badges
+                    and 'Closed' not in petition.status_badges)
 
         if not can_sign:
             flash('You are unable to sign this petition', 'info')
             # Send JSON response back to invalid POST request
-            return jsonify({'success': False, 'message': 'You are unable to sign this petition.', 'can_sign': True}), 200
+            return jsonify(
+                {'success': False, 'message': 'You are unable to sign this petition.', 'can_sign': True}), 200
 
         # Filter the signature reasoning utilising: https://pypi.org/project/alt-profanity-check/ ML model
         reason_text = request.form['reason']
@@ -288,6 +303,11 @@ def sign_petition(petition_id):
 @app.route('/signature/<int:signature_id>/like', methods=['POST'])
 @login_required
 def like_signature(signature_id):
+    """
+    Handles the liking of a signature comment on a petition
+    :param signature_id: The id of the signature to like
+    :return: A JSON response of the liking operation
+    """
     existing_like = Like.query.filter_by(user_id=current_user.id, signature_id=signature_id).first()
 
     if existing_like:
@@ -309,6 +329,10 @@ def like_signature(signature_id):
 @app.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_petition():
+    """
+    Handles the creation of a petition
+    :return: The rendered template or success messages
+    """
     form = CreatePetitionForm()
     if form.validate_on_submit():
         try:
@@ -317,7 +341,8 @@ def create_petition():
             description = form.description.data
             tag_line = form.tag_line.data
             # Image from University of Leeds Website: https://www.leeds.ac.uk/around-campus
-            image_url = form.image_url.data or 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJTcLeoDwmVmpJHNs8Ni9-4MHDhcFDQ-yr-g&s'
+            image_url = (form.image_url.data or
+                         'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJTcLeoDwmVmpJHNs8Ni9-4MHDhcFDQ-yr-g&s')
             status_badges = ['Waiting', category]
 
             new_petition = Petition(
@@ -343,9 +368,12 @@ def create_petition():
     return render_template('create.html', form=form)
 
 
-# ENSURE UNIQUE
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    """
+    Handles the creation of a user account
+    :return: The rendered template
+    """
     form = SignupForm()
     if form.validate_on_submit():
         username = form.username.data
@@ -377,6 +405,10 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Handles the authorisation of a user
+    :return: The link of the previous page or the home page
+    """
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -398,6 +430,10 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
+    """
+    Handles the de-authorisation of a user
+    :return: The url of the home page
+    """
     logout_user()
     flash('TOAST|Logged out!', 'success')
     return redirect(url_for('home'))
@@ -405,11 +441,19 @@ def logout():
 
 @app.route('/search')
 def search():
+    """
+    Renders the search page
+    :return: The rendered template
+    """
     return render_template('search.html')
 
 
 @app.route('/search_results', methods=['GET'])
 def search_results():
+    """
+    Finds petitions that match a specific query
+    :return: A list of petitions
+    """
     query = request.args.get('query', '').lower()
 
     if len(query) < 3:
@@ -425,9 +469,9 @@ def search_results():
     # Sort the results into an array
     results = [
         petition
-        for petition in petitions if query in petition.title.lower() or
-                                     query in petition.description.lower() or
-                                     query in petition.user.username.lower()
+        for petition in petitions if (query in petition.title.lower()
+                                      or query in petition.description.lower()
+                                      or query in petition.user.username.lower())
     ]
 
     # Apply highlighting to the matched parts
@@ -445,9 +489,17 @@ def search_results():
 
 @app.route('/privacy')
 def privacy_policy():
+    """
+    Renders the privacy policy page
+    :return: The rendered template
+    """
     return render_template('privacy.html')
 
 
 @app.route('/terms')
 def terms_and_conditions():
+    """
+    Renders the terms and conditions page
+    :return: The rendered template
+    """
     return render_template('terms.html')

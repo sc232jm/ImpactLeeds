@@ -29,9 +29,16 @@ class User(db.Model, UserMixin):
     signatures = db.relationship('Signature', backref='user', lazy=True)
     likes = db.relationship('Like', backref='user', lazy=True)
 
+    # To keep intellisense happy
+    def __init__(self, username, email):
+        self.username = username
+        self.email = email
+
+    # Bycrypt password hashing
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
+    # Bycrypt password comparison
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
 

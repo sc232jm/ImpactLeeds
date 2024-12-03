@@ -6,6 +6,7 @@ from app import app, db, models
 
 bcrypt = Bcrypt()
 
+
 class FlaskTestCase(TestCase):
     def create_app(self):
         app.config['TESTING'] = True
@@ -32,10 +33,8 @@ class FlaskTestCase(TestCase):
             user = models.User(
                 username='testuser',
                 email='test@example.com',
-                first_name='Test',
-                last_name='User',
-                password_hash=bcrypt.generate_password_hash('Test_123').decode('utf-8')
             )
+            user.set_password('<PASSWORD>')
             db.session.add(user)
             db.session.commit()
         with self.client:
