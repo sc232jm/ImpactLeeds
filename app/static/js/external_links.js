@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+/*jshint esversion: 8 */
 document.addEventListener('DOMContentLoaded', function () {
     // Find all links on the current page
     // https://stackoverflow.com/questions/56782843/problem-with-document-queryselectorall-ahref-is-not-a-valid-selector

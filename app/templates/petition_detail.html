@@ -61,8 +61,7 @@
 
                         <button class="btn btn-outline-danger btn-sm like-button mt-2"
                                 data-signature-id="{{ signature.id }}">
-                            {% if current_user.is_authenticated and signature.likes|selectattr('user_id', 'eq',
-                            current_user.id)|list %}
+                            {% if signature.likes|selectattr('user_id', 'eq', current_user.id) | list %}
                             <i class="fas fa-heart"></i>
                             {% else %}
                             <i class="far fa-heart"></i>
@@ -114,8 +113,9 @@
                 <div class="form-group text-center">
                     <i class="fas fa-user-circle fa-3x"></i>
                     <p class="mt-2">{{ current_user.username }}</p>
+                    <!-- PROVIDE A LABEL -->
                     <textarea class="form-control" id="reason" name="reason" rows="3"
-                              placeholder="You can't sign this petition at the moment." disabled></textarea>
+                                                          placeholder="You can't sign this petition at the moment." disabled></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary" disabled>Sign this Petition</button>
                 {% endif %}

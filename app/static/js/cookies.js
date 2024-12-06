@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+/*jshint esversion: 8 */
 
 /* Utilising: https://cookieconsent.orestbida.com/ */
 /* Obtained from: https://stackblitz.com/edit/web-platform-ahqgz3?file=index.js,index.html,en.json demo project */

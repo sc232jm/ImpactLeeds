@@ -12,7 +12,7 @@ https://wtforms.readthedocs.io/en/2.3.x/_modules/wtforms/fields/simple/#SubmitFi
 class SignupForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=16)])
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=32)])
-    password = PasswordField('Password', validators=[DataRequired(), Length(max=16)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(max=32)])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
 

@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+/*jshint esversion: 8 */
 document.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', function (e) {
         e.preventDefault();

@@ -16,10 +16,10 @@
                 {% include 'components/card.html' %}
                 <!-- Icons for edit and delete next to the image -->
                 <div class="ml-auto p-2">
-                    <a href="{{ url_for('edit_petition', petition_id=petition.id) }}" class="text-primary mr-2">
+                    <a href="{{ url_for('edit_petition', petition_id=petition.id) }}" class="text-primary mr-2" aria-label="edit petition">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <a href="#" class="text-danger delete-btn" data-id="{{ petition.id }}">
+                    <a href="#" class="text-danger delete-btn" data-id="{{ petition.id }}" aria-label="delete petition">
                         <i class="fas fa-trash-alt"></i>
                     </a>
                 </div>

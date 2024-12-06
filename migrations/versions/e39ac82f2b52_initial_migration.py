@@ -1,8 +1,8 @@
-"""hi
+"""Initial Migration
 
-Revision ID: 85510ae2058a
+Revision ID: e39ac82f2b52
 Revises: 
-Create Date: 2024-12-03 17:07:43.072164
+Create Date: 2024-12-04 10:29:10.712199
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '85510ae2058a'
+revision = 'e39ac82f2b52'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -48,7 +48,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('author_id', sa.Integer(), nullable=False),
     sa.Column('petition_id', sa.Integer(), nullable=False),
-    sa.Column('reason', sa.String(length=64), nullable=True),
+    sa.Column('reason', sa.String(length=32), nullable=True),
     sa.Column('is_anonymous', sa.Boolean(), nullable=True),
     sa.Column('signed_at', sa.DateTime(), nullable=True),
     sa.Column('flagged', sa.Boolean(), nullable=True),

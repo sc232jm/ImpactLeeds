@@ -24,6 +24,7 @@
                             </span>
                     {% endif %}
                     {% endfor %}
+                    <!-- Utilising: https://stackoverflow.com/questions/12341496/jinja-2-safe-keyword to overcome text rendering issues -->
                     <h5 class="card-title mt-2">{{ petition.title | safe }}</h5>
                     <p class="card-text">{{ petition.tag_line | safe }}</p>
                 </div>

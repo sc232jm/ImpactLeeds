@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+/*jshint esversion: 8 */
 document.addEventListener('DOMContentLoaded', function () {
     const passwordInput = document.getElementById('password');
     const passwordStrengthFill = document.getElementById('passwordStrengthFill');

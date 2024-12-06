@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+/*jshint esversion: 8 */
 
 /* Utilising SweetAlert2 */
 /* Documentation obtained from: https://sweetalert2.github.io/#usage */

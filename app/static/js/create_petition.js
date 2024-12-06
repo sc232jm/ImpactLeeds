@@ -1,26 +1,30 @@
 /* static/js/create_petition.js */
 
-/*jshint esversion: 6 */
+/*jshint esversion: 8 */
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
     let selectedCategory = null;
     const progressBar = document.getElementById('progressBar');
     const steps = document.querySelectorAll('.step');
-    /* Length limiting: https://github.com/sparksuite/simplemde-markdown-editor/issues/584#issuecomment-346965224 */
-    const simplemde = new SimpleMDE({element: document.getElementById("description"), status: [{
-        className: "chars",
-        defaultValue: function(el) {
-            el.innerHTML = "0 / " + 1024;
-         },
-        onUpdate: function(el) {
-            el.innerHTML = simplemde.value().length + " / "+ 1024;
-            limit_characters();
-        }
-    }]});
 
+    // Length limiting: https://github.com/sparksuite/simplemde-markdown-editor/issues/584#issuecomment-346965224
+    const simplemde = new SimpleMDE({
+        element: document.getElementById("description"), status: [{
+            className: "chars",
+            defaultValue: function (el) {
+                el.innerHTML = "0 / " + 1024;
+            },
+            onUpdate: function (el) {
+                el.innerHTML = simplemde.value().length + " / " + 1024;
+                limit_characters();
+            }
+        }]
+    });
+
+    // Length limiting continued
     function limit_characters() {
         document.getElementById('submitForm').classList.add('d-none');
-        if(simplemde.value().length > 1024) {
+        if (simplemde.value().length > 1024) {
             document.getElementById("showMockup").disabled = true
         } else {
             document.getElementById("showMockup").disabled = false
@@ -80,7 +84,18 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
     }
 
-    // / Store the category of the last selected button
+    // Validate image to ensure it can be loaded
+    // Derived from: https://stackoverflow.com/questions/20613984/jquery-or-javascript-check-if-image-loaded
+    function validateImage(imageURL) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => reject();
+            img.src = imageURL;
+        });
+    }
+
+    // Store the category of the last selected button
     document.querySelectorAll('.category-option button').forEach(button => {
         button.addEventListener('click', function () {
             selectedCategory = this.getAttribute('data-category');
@@ -123,19 +138,43 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Handle mockup generation
-    document.getElementById('showMockup').addEventListener('click', function (event) {
+    document.getElementById('showMockup').addEventListener('click', async function (event) {
         // Getting the raw description from simplemde (The markdown editor)
         const descriptionValue = simplemde.value();
         document.getElementById('description').value = descriptionValue;
 
         // Utilising SweetAlert2
         if (descriptionValue.length < 3) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Please provide a description for your petition.',
-                icon: 'error'
-            });
+            display([['success', "ERRTOAST|Please provide a description"]]);
             return;
+        }
+
+        const tagLine = document.getElementById('tag_line').value;
+
+        if (tagLine.length < 3) {
+            display([['success', "ERRTOAST|Please provide a tag line"]]);
+            return;
+        }
+
+        const imageURL = document.getElementById('image_url').value;
+
+        if (imageURL.length > 0) {
+            // Regular expression from: https://regexr.com/39nr7 (Google Query: "valid url regex")
+            const isValidURL = imageURL.match('[(http(s)?):\\/\\/(www\\.)?a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)');
+
+            if (!isValidURL) {
+                display([['success', "ERRTOAST|Please provide a valid URL"]]);
+                return;
+            }
+
+            try {
+                // Wait for the image validation to complete
+                await validateImage(imageURL);
+            } catch (error) {
+                display([['success', "ERRTOAST|Error loading the specified image"]]);
+
+                return;
+            }
         }
 
         // Generate a JS form object and store it on the petitionForm object 

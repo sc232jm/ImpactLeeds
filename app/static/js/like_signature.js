@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+/*jshint esversion: 8 */
 
 document.querySelectorAll('.like-button').forEach(button => {
     button.addEventListener('click', function () {

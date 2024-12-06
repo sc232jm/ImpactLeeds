@@ -38,7 +38,7 @@
         <div id="step2" class="step d-none">
             <h3>Name Your Petition</h3>
             <div class="form-group mt-4">
-                {{ form.title(class="form-control") }}
+                {{ form.title(class="form-control", aria_label="petition name") }}
                 <small class="form-text text-muted">Provide a clear and concise title for your petition.</small>
             </div>
             <div class="d-flex justify-content-between">
@@ -51,18 +51,18 @@
         <div id="step3" class="step d-none">
             <h3>Describe Your Petition</h3>
             <div class="form-group mt-4">
-                <label>Description</label>
-                {{ form.description(class="form-control markdown-editor") }}
+                <label for="description">Description</label>
+                {{ form.description(class="form-control markdown-editor", id="description") }}
                 <small class="form-text text-muted">Use markdown to format your description.</small>
             </div>
             <div class="form-group mt-4">
-                <label>Tag Line</label>
+                <label for="tag_line">Tag Line</label>
                 {{ form.tag_line(class="form-control", id="tag_line") }}
                 <small class="form-text text-muted">Provide a tag line that summarises your petition.</small>
             </div>
             <div class="form-group mt-4">
-                <label>Image URL</label>
-                {{ form.image_url(class="form-control") }}
+                <label for="image_url">Image URL (Optional)</label>
+                {{ form.image_url(class="form-control", id="image_url") }}
                 <small class="form-text text-muted">Provide a URL for an image to associate with your petition.</small>
             </div>
             <div class="d-flex justify-content-between">

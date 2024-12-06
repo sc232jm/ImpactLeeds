@@ -11,6 +11,8 @@ body {
     flex: 1;
 }
 
+/* Carousel and Jumbotron css derived from bootstrap docs */
+/* https://getbootstrap.com/docs/5.3/components/carousel/ */
 .carousel-item {
     min-height: 400px;
     padding: 20px;
@@ -40,9 +42,13 @@ body {
 
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: grey;
     border-radius: 50%;
     padding: 10px;
+}
+
+.carousel-indicators {
+    color: black;
 }
 
 .jumbotron {
@@ -64,8 +70,8 @@ body {
 
 .card img {
     width: 100%;
-    height: 176px; /* Limit the vertical height to create a banner shape */
-    object-fit: cover; /* Ensures image covers the card area without distortion */
+    height: 176px;
+    object-fit: cover;
 }
 
 .badge {
@@ -89,12 +95,11 @@ footer {
     color: #007bff;
 }
 
-/* Remove the spinner */
+/* npprogress css derived from: https://github.com/rstacruz/nprogress/blob/master/nprogress.css */
 #nprogress .spinner {
     display: none;
 }
 
-/* Change the progress bar color if needed */
 #nprogress .bar {
     background: #29d; /* Adjust the color as desired */
     width: 100%;
@@ -102,7 +107,6 @@ footer {
 
 }
 
-/* Optionally, you can also style the shadow */
 #nprogress .peg {
     box-shadow: 0 0 10px #29d, 0 0 5px #29d; /* Adjust the shadow as desired */
 }
@@ -118,7 +122,7 @@ footer {
 }
 
 .badge-info i {
-    margin-right: 5px; /* Add some space between the icon and the text */
+    margin-right: 5px;
 }
 
 .footer-link {
@@ -132,7 +136,7 @@ footer {
 }
 
 .footer-button {
-    color:  #007bff;
+    color: #007bff;
     text-decoration: none;
     padding: 0;
     border: none;
@@ -147,6 +151,7 @@ footer {
     outline: none;
 }
 
+/* Derived from: https://www.w3docs.com/snippets/css/how-to-create-a-blurry-text-in-css.html */
 .blurred-text {
     position: relative;
     color: transparent;
@@ -156,6 +161,7 @@ footer {
     transition: color 0.3s ease, text-shadow 0.3s ease, backdrop-filter 0.3s ease;
 }
 
+/* Derived from ChatGPT (How do I blur & unblur text) using CSS*/
 .blurred-text::after {
     content: attr(data-warning);
     position: absolute;
@@ -184,27 +190,13 @@ footer {
 }
 
 
-/* Bar Container and Fill */
 #passwordStrengthBar {
     border-radius: 5px;
     overflow: hidden;
     background-color: #e0e0e0;
 }
 
+/* Derived from: https://stackoverflow.com/questions/24408442/css3-transition-of-html5-progress-bar-element */
 #passwordStrengthFill {
     transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
-}
-
-/* Criteria List */
-.text-danger {
-    color: #dc3545;
-}
-
-.text-success {
-    color: #28a745;
-}
-
-ul#passwordCriteria {
-    margin-top: 10px;
-    padding-left: 20px;
 }

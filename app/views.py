@@ -78,7 +78,7 @@ def browse():
     elif category == 'latest':
         petitions = Petition.query.order_by(Petition.created_at.desc()).all()
     elif category == 'victories':
-        petitions = Petition.query.filter(Petition.status_badges.contains(['Victory'])).all()
+        petitions = Petition.query.filter(Petition.status_badges.contains('Victory')).all()
     else:
         petitions = Petition.query.all()
 
@@ -292,7 +292,7 @@ def sign_petition(petition_id):
         db.session.add(new_signature)
         db.session.commit()
 
-        flash('Petition created successfully!', 'success')
+        flash('Thank you for signing this petition!', 'success')
     elif form.errors:
         for _, errors in form.errors.items():
             for error in errors:

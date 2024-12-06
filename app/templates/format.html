@@ -1,0 +1,152 @@
+AssertionError: b'New Petition Name' not found in b'<!DOCTYPE html>\n
+<html lang="en">\n
+<head>\n
+    <meta charset="UTF-8">
+    \n
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    \n <title>Leeds Petitions</title>\n
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    \n    <!-- Any displayed icons that are prefixed with "fa" are from the front-awesome library -->\n
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    \n    <!-- Markdown text input for the description of petitions -->\n
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    \n    <!-- Minimalistic loading bar at the top of the page -->\n
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress/nprogress.css">
+    \n    <!-- Required to utilise the cookie consent by Orestbida -->\n
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/iframemanager@1.2.5/dist/iframemanager.css">
+    \n
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.css">
+    \n\n
+    <link href="/static/css/style.css" rel="stylesheet">
+    \n
+</head>
+\n
+<body>\n<!-- Derived from https://getbootstrap.com/docs/4.0/components/navbar/ --> \n
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">\n <a class="navbar-brand" href="/">Leeds
+    Petitions</a>\n
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" \n
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation dropdown">\n <span
+            class="navbar-toggler-icon"></span>\n
+    </button>
+    \n
+    <div class="collapse navbar-collapse" id="navbarNav">\n
+        <ul class="navbar-nav mr-auto">\n
+            <li class="nav-item">\n <a class="nav-link" href="/browse">Browse</a>\n</li>
+            \n
+            <li class="nav-item">\n <a class="nav-link" href="/create">Start a Petition</a>\n</li>
+            \n
+            <li class="nav-item">\n <a class="nav-link" href="/my_petitions">My Petitions</a>\n</li>
+            \n
+        </ul>
+        \n
+        <ul class="navbar-nav">\n
+            <li class="nav-item">\n <a class="nav-link" href="/search">\n <span class="d-none d-lg-inline">\n                    <i
+                    class="fas fa-search" aria-label="search"></i>\n                </span>\n <span
+                    class="d-inline d-lg-none" aria-label="search">\n                    Search\n                </span>\n
+            </a>\n
+            </li>
+            \n \n            <!-- Derived from: https://getbootstrap.com/docs/5.0/components/dropdowns/ -->\n
+            <li class="nav-item dropdown">\n <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
+                                                role="button" data-toggle="dropdown" \n aria-haspopup="true"
+                                                aria-expanded="false" aria-label="Toggle navigation dropdown">\n <i
+                    class="fas fa-user"></i>\n </a>\n
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">\n <a
+                        class="dropdown-item" href="/my_petitions">My Petitions</a>\n <a class="dropdown-item"
+                                                                                         href="/settings">Settings</a>\n
+                    <div class="dropdown-divider"></div>
+                    \n <a class="dropdown-item" href="/logout">Logout</a>\n
+                </div>
+                \n
+            </li>
+            \n \n
+        </ul>
+        \n
+    </div>
+    \n
+</nav>
+\n\n
+<div class="container mt-5">\n \n
+    <div class="container mt-4">\n <h2 class="mb-4">Browse Petitions</h2>\n
+        <div class="btn-group mb-4" role="group" aria-label="Filter petitions">\n <a href="/browse"
+                                                                                     class="btn btn-primary">All</a>\n
+            <a href="/browse?filter=popular" class="btn btn-primary" \n>Popular</a>\n <a href="/browse?filter=latest"
+                                                                                         class="btn btn-primary" \n
+                                                                                         style="background-color: #6c757d">Latest</a>\n
+            <a href="/browse?filter=victories" class="btn btn-primary" \n style="background-color: purple">Victories</a>\n
+        </div>
+        \n
+        <div class="row" id="petitions-container">\n \n
+            <!-- Derived from: https://getbootstrap.com/docs/4.0/components/card/ -->\n\n
+            <div class="col-md-12 mb-4">\n <a href="/petition/3" class="card text-decoration-none text-dark">\n
+                <!-- https://getbootstrap.com/docs/5.0/layout/gutters/ -->\n
+                <div class="row no-gutters">\n
+                    <div class="col-md-8">\n
+                        <div class="card-body">\n \n \n <span class="badge badge-purple">Victory</span>\n \n \n \n <span
+                                class="badge badge-info">\n                                \n                                    <i
+                                class="fas fa-heart"></i>\n                                \n                                Wellbeing\n                            </span>\n
+                            \n \n
+                            <!-- Utilising: https://stackoverflow.com/questions/12341496/jinja-2-safe-keyword to overcome text rendering issues -->
+                            \n <h5 class="card-title mt-2">A Victory Petition</h5>\n <p class="card-text">woohoo!!</p>\n
+                        </div>
+                        \n
+                        <div class="card-footer d-flex justify-content-between">\n <small class="text-muted">By
+                            test</small>\n <small class="text-muted">December 04, 2024 at 14:05 \xe2\x80\xa2 1
+                            signatures</small>\n
+                        </div>
+                        \n
+                    </div>
+                    \n
+                    <div class="col-md-4">\n <img
+                            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJTcLeoDwmVmpJHNs8Ni9-4MHDhcFDQ-yr-g&amp;s"
+                            class="card-img" alt="A Victory Petition">\n
+                    </div>
+                    \n
+                </div>
+                \n </a>\n
+            </div>
+            \n \n
+        </div>
+        \n
+    </div>
+    \n\n
+</div>
+\n\n
+<footer class="bg-light text-center text-lg-start mt-4">\n
+    <div class="text-center p-3">\n \xc2\xa9 2024 Leeds Petitions. All rights reserved.\n
+        <div>\n <a href="/terms" class="footer-link">Terms & Conditions</a>\n <a href="/privacy" class="footer-link">Privacy
+            Policy</a>\n
+            <button data-cc="show-preferencesModal" type="button" class="footer-button">Manage Preferences</button>
+            \n
+        </div>
+        \n
+    </div>
+    \n
+</footer>
+\n\n<!-- Utilising jquery and AJAX --> \n
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+\n\n<!-- Scripts for the specified stylesheets above --> \n
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+\n
+<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+\n
+<script src="https://cdn.jsdelivr.net/npm/nprogress/nprogress.js"></script>
+\n
+<script src="https://cdn.jsdelivr.net/gh/orestbida/iframemanager@1.2.5/dist/iframemanager.js"></script>
+\n
+<script src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.umd.js"></script>
+\n\n\n<!-- Utilising SweetAlert2 for better popups/notifications --> \n
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+\n\n<!-- Local Scripts --> \n
+<script src="/static/js/cookies.js"></script>
+\n
+<script src="/static/js/flash_messages.js"></script>
+\n
+<script src="/static/js/external_links.js"></script>
+\n
+<script src="/static/js/nprogress.js"></script>
+\n\n<!-- Derived from: https://flask.palletsprojects.com/en/stable/patterns/flashing/#flashing-with-categories --> \n
+<div id="flash-messages" style="display: none;">\n []\n</div>
+\n\n
+</body>
+\n
+</html>'

@@ -22,7 +22,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
     <a class="navbar-brand" href="{{ url_for('home') }}">Leeds Petitions</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation dropdown">
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
@@ -52,7 +52,7 @@
             <!-- Derived from: https://getbootstrap.com/docs/5.0/components/dropdowns/ -->
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
-                   aria-haspopup="true" aria-expanded="false">
+                   aria-haspopup="true" aria-expanded="false" aria-label="Toggle navigation dropdown">
                     <i class="fas fa-user"></i>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
@@ -97,7 +97,6 @@
 <script src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.umd.js"></script>
 
 
-
 <!-- Utilising SweetAlert2 for better popups/notifications -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -111,7 +110,6 @@
 <div id="flash-messages" style="display: none;">
     {{ get_flashed_messages(with_categories=true) | tojson }}
 </div>
-
 
 </body>
 </html>

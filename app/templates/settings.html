@@ -7,25 +7,25 @@
         <form id="settingsForm" method="POST" action="{{ url_for('settings') }}">
             {{ form.hidden_tag() }}
             <div class="form-group">
-                <label>First Name</label>
-                {{ form.first_name(class="form-control") }}
+                <label for="first_name">First Name</label>
+                {{ form.first_name(class="form-control", id="first_name") }}
             </div>
             <div class="form-group">
-                <label>Last Name</label>
-                {{ form.last_name(class="form-control") }}
+                <label for="last_name">Last Name</label>
+                {{ form.last_name(class="form-control", id="last_name") }}
             </div>
             <div class="form-group">
-                <label>Username</label>
-                {{ form.username(class="form-control") }}
+                <label for="username">Username</label>
+                {{ form.username(class="form-control", id="username") }}
             </div>
             <div class="form-group">
-                <label>Email Address</label>
+                <label for="email">Email Address</label>
                 <input type="email" class="form-control" id="email" name="email" aria-label="Email"
                        value="{{ current_user.email }}" disabled>
             </div>
             <div class="form-group">
-                <label>About Me</label>
-                {{ form.about_me(class="form-control", rows="3") }}
+                <label for="about_me">About Me</label>
+                {{ form.about_me(class="form-control", rows="3", id="about_me") }}
             </div>
             {{ form.submit(class="btn btn-primary") }}
         </form>

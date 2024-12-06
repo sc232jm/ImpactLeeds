@@ -19,10 +19,7 @@
     <div class="carousel-inner">
         {% for petition in petitions %}
         <div class="carousel-item {% if loop.first %}active{% endif %}">
-            <a href="{{ url_for('petition_detail', petition_id=petition.id) }}"
-               class="d-flex align-items-center text-decoration-none text-dark w-100">
-                {% include 'components/card.html' %}
-            </a>
+            {% include 'components/card.html' %}
         </div>
         {% endfor %}
     </div>
